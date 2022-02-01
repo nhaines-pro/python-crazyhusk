@@ -1,4 +1,5 @@
 """Object wrappers for working with Unreal Engine installations."""
+import glob
 import json
 import os
 import platform
@@ -15,6 +16,10 @@ def find_egl_engines_windows():
         with open(dat_file, encoding="utf-8") as _datfile:
             for item in json.load(_datfile).get("InstallationList", []):
                 yield item.get("InstallLocation")
+
+    # check legacy paths
+    for ue_dir in glob.iglob(r"C:\Program Files\Epic Games\UE_*"):
+        yield ue_dir
 
 
 def list_engines():

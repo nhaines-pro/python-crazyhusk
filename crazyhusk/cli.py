@@ -11,7 +11,7 @@ def run():
     commands = {}
     for entry_point in pkg_resources.iter_entry_points("crazyhusk.commands"):
         commands[entry_point.name] = entry_point.load()
-        command_parser = commands_parser.add_parser(entry_point.name)
+        commands_parser.add_parser(entry_point.name)
 
     args = parser.parse_args()
 

@@ -1,9 +1,11 @@
 """Object wrappers for working with Unreal Engine installations."""
 import glob
 import json
+import logging
 import os
 import platform
 import winreg
+
 import pkg_resources
 
 
@@ -11,7 +13,7 @@ def find_egl_engines_windows():
     """Find and yield all Epic Games Launcher engines."""
     if platform.system() != "Windows":
         return
-    print("Finding Epic Games Launcher installations for Windows platform...")
+    logging.info("Finding Epic Games Launcher installations for Windows platform...")
     dat_file = r"C:\ProgramData\Epic\UnrealEngineLauncher\LauncherInstalled.dat"
     if os.path.isfile(dat_file):
         with open(dat_file, encoding="utf-8") as _datfile:
@@ -28,7 +30,7 @@ def find_registered_engines_windows():
     if platform.system() != "Windows":
         return
 
-    print("Finding Windows Registry installations...")
+    logging.info("Finding Windows Registry installations...")
     try:
         with winreg.OpenKey(
             winreg.HKEY_CURRENT_USER, r"Software\Epic Games\Unreal Engine\Builds"
@@ -41,8 +43,8 @@ def find_registered_engines_windows():
 
 
 def list_engines():
-    """Print all found engines."""
-    print("Listing all the engines...")
+    """Log all found engines."""
+    logging.info("Listing all the engines...")
     for entry_point in pkg_resources.iter_entry_points("crazyhusk.find_engines"):
         for engine in entry_point.load()():
-            print(engine)
+            logging.info(engine)

@@ -6,11 +6,10 @@ import pkg_resources
 def run():
     """Run the crazyhusk CLI entrypoint."""
     parser = argparse.ArgumentParser()
-    commands_parser = parser.add_subparsers(help='sub-command help',
-                                            dest='command')
+    commands_parser = parser.add_subparsers(help="sub-command help", dest="command")
 
     commands = {}
-    for entry_point in pkg_resources.iter_entry_points('crazyhusk.commands'):
+    for entry_point in pkg_resources.iter_entry_points("crazyhusk.commands"):
         commands[entry_point.name] = entry_point.load()
         command_parser = commands_parser.add_parser(entry_point.name)
 

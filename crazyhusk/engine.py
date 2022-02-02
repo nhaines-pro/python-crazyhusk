@@ -204,9 +204,7 @@ class UnrealEngine(object):
         ):
             entry_point.load()(self)
 
-    def run(
-        self, executable, expected_retcodes=set([0]), callback=None, *args, **kwargs
-    ):
+    def run(self, executable, *args, expected_retcodes=None):
         """Run an associated Unreal executable in a subprocess, and process output line by line."""
         self.validate()
 
@@ -217,11 +215,15 @@ class UnrealEngine(object):
         if not os.path.isfile(executable):
             raise UnrealExecutionError(f"Executable does not exist: {executable}")
 
+        if expected_retcodes is None:
+            expected_retcodes = set([0])
         cmd = [executable]
         cmd.extend(args)
 
         logger = logging.getLogger("UnrealEngine.run")
         logger.info(" ".join(cmd))
+        for entry_point in pkg_resources.iter_entry_points("crazyhusk.logs.filters"):
+            logger.addFilter(entry_point.load()(executable, *args))
 
         self.__process = subprocess.Popen(
             cmd,
@@ -239,11 +241,7 @@ class UnrealEngine(object):
             output = output.strip()
             if not output:
                 continue
-
-            if callable(callback):
-                callback(output)
-            else:
-                logger.info(output)
+            logger.info(output)
 
         return_code = self.__process.poll()
         if return_code not in expected_retcodes:

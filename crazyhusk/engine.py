@@ -6,6 +6,8 @@ import subprocess
 
 import pkg_resources
 
+from crazyhusk.logs import FilterEngineRun
+
 
 __all__ = ["UnrealEngine", "UnrealEngineError"]
 
@@ -221,9 +223,10 @@ class UnrealEngine(object):
         cmd.extend(args)
 
         logger = logging.getLogger("UnrealEngine.run")
-        logger.info(" ".join(cmd))
+        logger.addFilter(FilterEngineRun(executable, *args))
         for entry_point in pkg_resources.iter_entry_points("crazyhusk.logs.filters"):
-            logger.addFilter(entry_point.load()(executable, *args))
+            logger.addFilter(entry_point.load()())
+        logger.info(" ".join(cmd))
 
         self.__process = subprocess.Popen(
             cmd,

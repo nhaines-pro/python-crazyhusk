@@ -71,7 +71,9 @@ class UnrealEngine(object):
 
     def __repr__(self):
         """Python interpreter representation of this instance."""
-        return f"<UnrealEngine {self.version} at {self.base_dir}>"
+        return (
+            f"<UnrealEngine {self.build_type} Build {self.version} at {self.base_dir}>"
+        )
 
     def __lt__(self, other):
         return self.version < other.version
@@ -100,6 +102,14 @@ class UnrealEngine(object):
     def build_dir(self):
         """Path to this Engine's Binaries directory."""
         return os.path.join(self.base_dir, "Engine", "Build")
+
+    @property
+    def build_type(self):
+        """Type of build available for this Engine."""
+        if os.path.isfile(os.path.join(self.build_dir, "InstalledBuild.txt")):
+            return "Installed"
+        if os.path.isfile(os.path.join(self.build_dir, "SourceDistribution.txt")):
+            return "Source"
 
     @property
     def config_dir(self):
@@ -141,3 +151,11 @@ class UnrealEngine(object):
         for entry_point in pkg_resources.iter_entry_points("crazyhusk.find_engines"):
             for engine in entry_point.load()():
                 yield engine
+
+    def is_installed_build(self):
+        """Determine if this engine was built via the BuildGraph system. Typically, this means the engine was built by Epic."""
+        return os.path.isfile(os.path.join(self.build_dir, "InstalledBuild.txt"))
+
+    def is_source_build(self):
+        """Determine if this engine was built as a source distribution. Typically, this means the engine was built locally."""
+        return os.path.isfile(os.path.join(self.build_dir, "SourceDistribution.txt"))

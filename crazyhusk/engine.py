@@ -2,6 +2,7 @@
 import json
 import logging
 import os
+import subprocess
 
 import pkg_resources
 
@@ -11,6 +12,10 @@ __all__ = ["UnrealEngine", "UnrealEngineError"]
 
 class UnrealEngineError(Exception):
     """Custom exception representing errors encountered with UnrealEngine."""
+
+
+class UnrealExecutionError(Exception):
+    """Custom exception representing errors encountered within a subprocess call of Unreal Engine executables."""
 
 
 class UnrealVersion(object):
@@ -62,12 +67,14 @@ class UnrealEngine(object):
             raise UnrealEngineError("UnrealEngine base directory must not be empty.")
 
         # dynamically add custom engine finder extensions
-        for entry_point in pkg_resources.iter_entry_points("crazyhusk.find_engines"):
+        for entry_point in pkg_resources.iter_entry_points("crazyhusk.engine.finders"):
             setattr(self, entry_point.name, entry_point.load())
 
         self.base_dir = base_dir
         self.association_name = association_name
         self.__version = None
+        self.__in_context = False
+        self.__process = None
 
     def __repr__(self):
         """Python interpreter representation of this instance."""
@@ -77,6 +84,22 @@ class UnrealEngine(object):
 
     def __lt__(self, other):
         return self.version < other.version
+
+    def __enter__(self):
+        """Context wrapper entry point.
+        Resets the context for running multiple processes sequentially.
+        """
+        self.__in_context = True
+        self.__process = None
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context wrapper exit point.
+        Ensures any running subprocesses are terminated.
+        """
+        if isinstance(self.__process, subprocess.Popen):
+            self.__process.kill()
+        self.__in_context = False
 
     @property
     def engine_dir(self):
@@ -148,14 +171,83 @@ class UnrealEngine(object):
     @staticmethod
     def find_all_engines():
         """Find and yield all available engine installations."""
-        for entry_point in pkg_resources.iter_entry_points("crazyhusk.find_engines"):
+        for entry_point in pkg_resources.iter_entry_points("crazyhusk.engine.finders"):
             for engine in entry_point.load()():
                 yield engine
 
+    @staticmethod
+    def engine_dir_exists(engine):
+        """Raise exception if this instance is not available on disk."""
+        if not os.path.isdir(engine.engine_dir):
+            raise UnrealEngineError("Specified engine directory does not exist.")
+
+    @staticmethod
+    def format_commandline_options(*switches, **parameters):
+        """Convert input arguments from Pythonic expansions to commandline strings."""
+        for switch in set(switches):
+            yield f"-{switch}"
+        for arg, value in parameters.items():
+            yield f"-{arg}={value}"
+
     def is_installed_build(self):
-        """Determine if this engine was built via the BuildGraph system. Typically, this means the engine was built by Epic."""
+        """Determine if this engine is an Installed distribution."""
         return os.path.isfile(os.path.join(self.build_dir, "InstalledBuild.txt"))
 
     def is_source_build(self):
-        """Determine if this engine was built as a source distribution. Typically, this means the engine was built locally."""
+        """Determine if this engine is a Source distribution."""
         return os.path.isfile(os.path.join(self.build_dir, "SourceDistribution.txt"))
+
+    def validate(self):
+        """Raise exceptions if this instance is misconfigured."""
+        for entry_point in pkg_resources.iter_entry_points(
+            "crazyhusk.engine.validators"
+        ):
+            entry_point.load()(self)
+
+    def run(
+        self, executable, expected_retcodes=set([0]), callback=None, *args, **kwargs
+    ):
+        """Run an associated Unreal executable in a subprocess, and process output line by line."""
+        self.validate()
+
+        if not self.__in_context:
+            raise UnrealExecutionError(
+                "UnrealEngine.run commands must be called with UnrealEngine as a context wrapper."
+            )
+        if not os.path.isfile(executable):
+            raise UnrealExecutionError(f"Executable does not exist: {executable}")
+
+        cmd = [executable]
+        cmd.extend(args)
+
+        logger = logging.getLogger("UnrealEngine.run")
+        logger.info(" ".join(cmd))
+
+        self.__process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stdin=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            shell=True,
+            universal_newlines=True,
+        )
+
+        while True:
+            output = self.__process.stdout.readline()
+            if not output and self.__process.poll() is not None:
+                break
+            output = output.strip()
+            if not output:
+                continue
+
+            if callable(callback):
+                callback(output)
+            else:
+                logger.info(output)
+
+        return_code = self.__process.poll()
+        if return_code not in expected_retcodes:
+            raise UnrealExecutionError(
+                f"Unreal executable returned exception with return code {return_code}.\nCommand: {cmd}"
+            )
+        return return_code

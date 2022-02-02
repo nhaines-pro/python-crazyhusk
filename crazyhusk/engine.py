@@ -1,4 +1,5 @@
 """Object wrappers for working with Unreal Engine installations."""
+import json
 import logging
 import os
 
@@ -10,6 +11,44 @@ __all__ = ["UnrealEngine", "UnrealEngineError"]
 
 class UnrealEngineError(Exception):
     """Custom exception representing errors encountered with UnrealEngine."""
+
+
+class UnrealVersion(object):
+    """Object wrapper representing a Build.version file."""
+
+    def __init__(self):
+        """Initialize a new UnrealVersion."""
+        self.major = 4
+        self.minor = 0
+        self.patch = 0
+        self.changelist = 0
+        self.branch = ""
+
+    def __str__(self):
+        """Represent this instance as a string."""
+        return f"{self.major}.{self.minor}.{self.patch}-{self.changelist}+{self.branch}"
+
+    def __lt__(self, other):
+        if self.major < other.major:
+            return True
+        if self.minor < other.minor:
+            return True
+        if self.patch < other.patch:
+            return True
+        if self.changelist < other.changelist:
+            return True
+        return False
+
+    @staticmethod
+    def to_object(dct):
+        """Convert dictionary form to UnrealVersion object instance."""
+        version = UnrealVersion()
+        version.major = dct.get("MajorVersion", 4)
+        version.minor = dct.get("MinorVersion", 0)
+        version.patch = dct.get("PatchVersion", 0)
+        version.changelist = dct.get("Changelist", 0)
+        version.branch = dct.get("BranchName", "")
+        return version
 
 
 class UnrealEngine(object):
@@ -28,13 +67,14 @@ class UnrealEngine(object):
 
         self.base_dir = base_dir
         self.association_name = association_name
+        self.__version = None
 
     def __repr__(self):
         """Python interpreter representation of this instance."""
-        return f"<UnrealEngine {self.association_name} at {self.base_dir}>"
+        return f"<UnrealEngine {self.version} at {self.base_dir}>"
 
     def __lt__(self, other):
-        return self.association_name < other.association_name
+        return self.version < other.version
 
     @property
     def engine_dir(self):
@@ -75,6 +115,18 @@ class UnrealEngine(object):
     def plugins_dir(self):
         """Path to this Engine's Plugins directory."""
         return os.path.join(self.base_dir, "Engine", "Plugins")
+
+    @property
+    def version(self):
+        """Engine version, as UnrealVersion."""
+        if self.__version is None:
+            with open(
+                os.path.join(self.build_dir, "Build.version"), encoding="utf-8"
+            ) as json_version_file:
+                self.__version = json.load(
+                    json_version_file, object_hook=UnrealVersion.to_object
+                )
+        return self.__version
 
     @staticmethod
     def list_engines():

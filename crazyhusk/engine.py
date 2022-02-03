@@ -36,6 +36,8 @@ class UnrealVersion(object):
         return f"{self.major}.{self.minor}.{self.patch}-{self.changelist}+{self.branch}"
 
     def __lt__(self, other):
+        if not (isinstance(self, UnrealVersion) and isinstance(other, UnrealVersion)):
+            return NotImplemented
         if self.major < other.major:
             return True
         if self.minor < other.minor:
@@ -85,6 +87,8 @@ class UnrealEngine(object):
         )
 
     def __lt__(self, other):
+        if not (isinstance(self, UnrealEngine) and isinstance(other, UnrealEngine)):
+            return NotImplemented
         return self.version < other.version
 
     def __enter__(self):

@@ -212,21 +212,27 @@ class UnrealEngine(object):
         ):
             entry_point.load()(self)
 
+    def sanitize_commandline(self, executable, *args):
+        """Raise exceptions if we are about to run unsafe commands in the subprocess."""
+        for entry_point in pkg_resources.iter_entry_points(
+            "crazyhusk.engine.sanitizers"
+        ):
+            entry_point.load()(self, executable, *args)
+        cmd = [executable, *args]
+        return cmd
+
     def run(self, executable, *args, expected_retcodes=None):
         """Run an associated Unreal executable in a subprocess, and process output line by line."""
-        self.validate()
-
         if not self.__in_context:
             raise UnrealExecutionError(
                 "UnrealEngine.run commands must be called with UnrealEngine as a context wrapper."
             )
-        if not os.path.isfile(executable):
-            raise UnrealExecutionError(f"Executable does not exist: {executable}")
 
         if expected_retcodes is None:
             expected_retcodes = set([0])
-        cmd = [executable]
-        cmd.extend(args)
+
+        self.validate()
+        cmd = self.sanitize_commandline(executable, *args)
 
         logger = logging.getLogger("UnrealEngine.run")
         logger.addFilter(FilterEngineRun(executable, *args))

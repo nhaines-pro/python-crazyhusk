@@ -166,9 +166,9 @@ class UnrealEngine(object):
         return self.__version
 
     @staticmethod
-    def find_all_engines():
-        """Find and yield all available engine installations."""
-        for entry_point in pkg_resources.iter_entry_points("crazyhusk.engine.finders"):
+    def list_all_engines():
+        """List all available engine installations."""
+        for entry_point in pkg_resources.iter_entry_points("crazyhusk.engine.listers"):
             for engine in entry_point.load()():
                 yield engine
 
@@ -182,10 +182,9 @@ class UnrealEngine(object):
 
     # crazyhusk.commands
     @staticmethod
-    def list_engines():
+    def log_engine_list():
         """Log all found engines."""
-        logging.info("Listing all the engines...")
-        for engine in sorted(UnrealEngine.find_all_engines()):
+        for engine in sorted(UnrealEngine.list_all_engines()):
             logging.info(engine)
 
     # crazyhusk.engine.sanitizers

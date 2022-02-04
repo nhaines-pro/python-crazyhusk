@@ -11,12 +11,12 @@ import winreg
 from crazyhusk.engine import UnrealEngine
 
 
-def find_egl_engines_windows():
-    """Find and yield all Epic Games Launcher engines."""
+def list_egl_engines_windows():
+    """List all Epic Games Launcher engines."""
     if platform.system() != "Windows":
         return
 
-    logging.info("Finding Epic Games Launcher installations for Windows platform...")
+    logging.info("Gathering Epic Games Launcher installations for Windows platform...")
     dat_file = r"C:\ProgramData\Epic\UnrealEngineLauncher\LauncherInstalled.dat"
     if os.path.isfile(dat_file):
         with open(dat_file, encoding="utf-8") as _datfile:
@@ -31,12 +31,12 @@ def find_egl_engines_windows():
         yield UnrealEngine(ue_dir, ue_dir.split("UE_")[-1])
 
 
-def find_registered_engines_windows():
-    """Find and yield all engines associated via Windows Registry keys."""
+def list_registered_engines_windows():
+    """List all engines associated via Windows Registry keys."""
     if platform.system() != "Windows":
         return
 
-    logging.info("Finding Windows Registry installations...")
+    logging.info("Gathering Windows Registry installations...")
     try:
         with winreg.OpenKey(
             winreg.HKEY_CURRENT_USER, r"Software\Epic Games\Unreal Engine\Builds"

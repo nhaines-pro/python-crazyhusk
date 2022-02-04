@@ -166,6 +166,14 @@ class UnrealEngine(object):
         return self.__version
 
     @staticmethod
+    def find_engine(association):
+        """Find an engine distribution from EngineAssociation string."""
+        for entry_point in pkg_resources.iter_entry_points("crazyhusk.engine.finders"):
+            engine = entry_point.load()(association)
+            if engine is not None:
+                return engine
+
+    @staticmethod
     def list_all_engines():
         """List all available engine installations."""
         for entry_point in pkg_resources.iter_entry_points("crazyhusk.engine.listers"):

@@ -10,6 +10,41 @@ import winreg
 # CrazyHusk
 from crazyhusk.engine import UnrealEngine
 
+DAT_FILE = r"C:\ProgramData\Epic\UnrealEngineLauncher\LauncherInstalled.dat"
+
+
+def find_egl_engine_windows(association):
+    """Find Epic Games Launcher engine distribution from EngineAssociation string."""
+    if platform.system() != "Windows":
+        return
+
+    if os.path.isfile(DAT_FILE):
+        with open(DAT_FILE, encoding="utf-8") as _datfile:
+            for item in json.load(_datfile).get("InstallationList", []):
+                if (
+                    association == item.get("InstallLocation")
+                    or association == item.get("AppVersion", "").split("-")[0][:-2]
+                ):
+                    return UnrealEngine(
+                        item.get("InstallLocation"),
+                        item.get("AppVersion", "").split("-")[0][:-2],
+                    )
+
+
+def find_registered_engines_windows(association):
+    """Find Windows Registry engine distribution from EngineAssociation string."""
+    if platform.system() != "Windows":
+        return
+
+    try:
+        with winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER, r"Software\Epic Games\Unreal Engine\Builds"
+        ) as key:
+            base_dir, _ = winreg.QueryValueEx(key, association)
+            return UnrealEngine(os.path.join(base_dir, "Engine"), association)
+    except WindowsError:
+        return
+
 
 def list_egl_engines_windows():
     """List all Epic Games Launcher engines."""
@@ -17,9 +52,8 @@ def list_egl_engines_windows():
         return
 
     logging.info("Gathering Epic Games Launcher installations for Windows platform...")
-    dat_file = r"C:\ProgramData\Epic\UnrealEngineLauncher\LauncherInstalled.dat"
-    if os.path.isfile(dat_file):
-        with open(dat_file, encoding="utf-8") as _datfile:
+    if os.path.isfile(DAT_FILE):
+        with open(DAT_FILE, encoding="utf-8") as _datfile:
             for item in json.load(_datfile).get("InstallationList", []):
                 yield UnrealEngine(
                     item.get("InstallLocation"),

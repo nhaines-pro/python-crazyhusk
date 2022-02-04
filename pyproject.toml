@@ -4,3 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
 write_to = "crazyhusk/_version.py"
+
+[tool.isort]
+profile = "black"
+skip_gitignore = true
+src_paths = ["crazyhusk"]
+import_heading_future = "Future Standard Library"
+import_heading_stdlib = "Standard Library"
+import_heading_thirdparty = "Third Party"
+import_heading_firstparty = "CrazyHusk"

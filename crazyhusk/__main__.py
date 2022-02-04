@@ -5,6 +5,7 @@ Example: python -m crazyhusk list_engines
 """
 
 if __name__ == "__main__":
+    # CrazyHusk
     from crazyhusk import cli
 
     cli.run()

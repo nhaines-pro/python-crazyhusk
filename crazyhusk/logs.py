@@ -1,10 +1,9 @@
 """Logging utilities for crazyhusk Unreal Engine object wrappers."""
+# Standard Library
 import logging
 import re
 import time
-
 from datetime import datetime
-
 
 # Regular expression for capturing data from UE4 logs
 RE_UE4_LOG_LINE = re.compile(

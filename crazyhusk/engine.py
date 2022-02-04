@@ -170,19 +170,30 @@ class UnrealEngine(object):
         return self.__version
 
     @staticmethod
-    def list_engines():
-        """Log all found engines."""
-        logging.info("Listing all the engines...")
-        for engine in sorted(UnrealEngine.find_all_engines()):
-            logging.info(engine)
-
-    @staticmethod
     def find_all_engines():
         """Find and yield all available engine installations."""
         for entry_point in pkg_resources.iter_entry_points("crazyhusk.engine.finders"):
             for engine in entry_point.load()():
                 yield engine
 
+    # crazyhusk.commands
+    @staticmethod
+    def list_engines():
+        """Log all found engines."""
+        logging.info("Listing all the engines...")
+        for engine in sorted(UnrealEngine.find_all_engines()):
+            logging.info(engine)
+
+    # crazyhusk.engine.sanitizers
+    @staticmethod
+    def engine_exe_exists(engine, executable, *args):
+        """Raise exception if the executable is not available on disk."""
+        if not os.path.isfile(os.path.abspath(executable)):
+            raise UnrealExecutionError(
+                f"Specifiec executable does not exist: {os.path.abspath(executable)}"
+            )
+
+    # crazyhusk.engine.validators
     @staticmethod
     def engine_dir_exists(engine):
         """Raise exception if this instance is not available on disk."""

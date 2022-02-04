@@ -72,10 +72,6 @@ class UnrealEngine(object):
         elif base_dir == "":
             raise UnrealEngineError("UnrealEngine base directory must not be empty.")
 
-        # dynamically add custom engine finder extensions
-        for entry_point in pkg_resources.iter_entry_points("crazyhusk.engine.finders"):
-            setattr(self, entry_point.name, entry_point.load())
-
         self.base_dir = os.path.realpath(base_dir)
         self.association_name = association_name
         self.__version = None
@@ -131,7 +127,7 @@ class UnrealEngine(object):
 
     @property
     def build_dir(self):
-        """Path to this Engine's Binaries directory."""
+        """Path to this Engine's Build directory."""
         return os.path.join(self.base_dir, "Engine", "Build")
 
     @property

@@ -15,6 +15,7 @@ def find_egl_engines_windows():
     """Find and yield all Epic Games Launcher engines."""
     if platform.system() != "Windows":
         return
+
     logging.info("Finding Epic Games Launcher installations for Windows platform...")
     dat_file = r"C:\ProgramData\Epic\UnrealEngineLauncher\LauncherInstalled.dat"
     if os.path.isfile(dat_file):

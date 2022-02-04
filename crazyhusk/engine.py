@@ -76,7 +76,7 @@ class UnrealEngine(object):
         for entry_point in pkg_resources.iter_entry_points("crazyhusk.engine.finders"):
             setattr(self, entry_point.name, entry_point.load())
 
-        self.base_dir = base_dir
+        self.base_dir = os.path.realpath(base_dir)
         self.association_name = association_name
         self.__version = None
         self.__in_context = False
@@ -196,9 +196,25 @@ class UnrealEngine(object):
     @staticmethod
     def engine_exe_exists(engine, executable, *args):
         """Raise exception if the executable is not available on disk."""
-        if not os.path.isfile(os.path.abspath(executable)):
+        if not os.path.isfile(os.path.realpath(executable)):
             raise UnrealExecutionError(
-                f"Specifiec executable does not exist: {os.path.abspath(executable)}"
+                f"Specified executable does not exist: {os.path.realpath(executable)}"
+            )
+
+    @staticmethod
+    def engine_exe_common_path(engine, executable, *args):
+        """Raise exception if the executable does not resolve to a path owned by the given engine."""
+        if not isinstance(engine, UnrealEngine):
+            raise TypeError(
+                f"Must provide an instance of crazyhusk.engine.UnrealEngine, got: {engine!r}"
+            )
+
+        if (
+            not os.path.commonpath([os.path.realpath(executable), engine.base_dir])
+            == engine.base_dir
+        ):
+            raise UnrealExecutionError(
+                f"Specified executable: {os.path.realpath(executable)}\nis not part of the provided engine distribution: {engine!r}"
             )
 
     # crazyhusk.engine.validators

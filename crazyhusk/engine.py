@@ -176,6 +176,14 @@ class UnrealEngine(object):
             for engine in entry_point.load()():
                 yield engine
 
+    @staticmethod
+    def format_commandline_options(*switches, **parameters):
+        """Convert input arguments from Pythonic expansions to commandline strings."""
+        for switch in set(switches):
+            yield f"-{switch}"
+        for arg, value in parameters.items():
+            yield f"-{arg}={value}"
+
     # crazyhusk.commands
     @staticmethod
     def list_engines():
@@ -199,14 +207,6 @@ class UnrealEngine(object):
         """Raise exception if this instance is not available on disk."""
         if not os.path.isdir(engine.engine_dir):
             raise UnrealEngineError("Specified engine directory does not exist.")
-
-    @staticmethod
-    def format_commandline_options(*switches, **parameters):
-        """Convert input arguments from Pythonic expansions to commandline strings."""
-        for switch in set(switches):
-            yield f"-{switch}"
-        for arg, value in parameters.items():
-            yield f"-{arg}={value}"
 
     def is_installed_build(self):
         """Determine if this engine is an Installed distribution."""

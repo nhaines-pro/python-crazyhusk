@@ -9,6 +9,7 @@ import subprocess
 import pkg_resources
 
 # CrazyHusk
+from crazyhusk.config import CONFIG_CATEGORIES, UnrealConfigParser
 from crazyhusk.logs import FilterEngineRun
 
 __all__ = ["UnrealEngine", "UnrealEngineError"]
@@ -226,6 +227,25 @@ class UnrealEngine(object):
         """Raise exception if this instance is not available on disk."""
         if not os.path.isdir(engine.engine_dir):
             raise UnrealEngineError("Specified engine directory does not exist.")
+
+    def config(self, config_category=None, platform=None):
+        """Create a configuration object associated with this engine by category and platform."""
+        _config = UnrealConfigParser()
+        _config.read(self.config_files(config_category, platform))
+        return _config
+
+    def config_files(self, config_category=None, platform=None):
+        """Iterate configuration file paths associated with this engine by category and platform."""
+        yield os.path.join(self.config_dir, "Base.ini")
+        if config_category in CONFIG_CATEGORIES:
+            yield os.path.join(self.config_dir, f"Base{config_category}.ini")
+            if platform is not None:
+                yield os.path.join(
+                    self.config_dir, platform, f"Base{platform}{config_category}.ini"
+                )
+                yield os.path.join(
+                    self.config_dir, platform, f"{platform}{config_category}.ini"
+                )
 
     def is_installed_build(self):
         """Determine if this engine is an Installed distribution."""

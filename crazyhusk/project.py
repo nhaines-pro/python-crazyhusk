@@ -7,6 +7,7 @@ import os
 import pkg_resources
 
 # CrazyHusk
+from crazyhusk.config import CONFIG_CATEGORIES, UnrealConfigParser
 from crazyhusk.engine import UnrealEngine
 
 __all__ = ["UnrealProject"]
@@ -144,6 +145,24 @@ class UnrealProject(object):
             )
         if not os.path.splitext(project.project_file)[-1] == ".uproject":
             raise UnrealProjectError(f"Not a uproject file: {project.project_file}")
+
+    def config(self, config_category=None, platform=None):
+        """Create a configuration object associated with this project by category and platform."""
+        _config = UnrealConfigParser()
+        if isinstance(self.engine, UnrealEngine):
+            self.engine.validate()
+            _config.read(self.engine.config_files(config_category, platform))
+        _config.read(self.config_files(config_category, platform))
+        return _config
+
+    def config_files(self, config_category=None, platform=None):
+        """Iterate configuration file paths associated with this project by category and platform."""
+        if config_category in CONFIG_CATEGORIES:
+            yield os.path.join(self.config_dir, f"Default{config_category}.ini")
+            if platform is not None:
+                yield os.path.join(
+                    self.config_dir, platform, f"{platform}{config_category}.ini"
+                )
 
     def validate(self):
         """Raise exceptions if this instance is misconfigured."""

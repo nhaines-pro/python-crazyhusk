@@ -99,6 +99,31 @@ class UnrealProject(object):
         new_engine.validate()
         self.__engine = new_engine
 
+    @property
+    def project_dir(self):
+        """Get the base directory for .uproject file."""
+        return os.path.dirname(self.project_file)
+
+    @property
+    def config_dir(self):
+        """Get the project's Config directory."""
+        return os.path.join(self.project_dir, "Config")
+
+    @property
+    def content_dir(self):
+        """Get the project's Content directory."""
+        return os.path.join(self.project_dir, "Content")
+
+    @property
+    def plugins_dir(self):
+        """Get the project's Plugins directory."""
+        return os.path.join(self.project_dir, "Plugins")
+
+    @property
+    def saved_dir(self):
+        """Get the project's Saved directory."""
+        return os.path.join(self.project_dir, "Saved")
+
     # crazyhusk.project.validators
     @staticmethod
     def project_file_exists(project):

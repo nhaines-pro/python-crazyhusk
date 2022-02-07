@@ -91,6 +91,14 @@ class UnrealProject(object):
                 )
         return self.__engine
 
+    @engine.setter
+    def engine(self, new_engine):
+        if not isinstance(new_engine, UnrealEngine):
+            new_engine = UnrealEngine.find_engine(new_engine)
+        
+        new_engine.validate()
+        self.__engine = new_engine
+
     # crazyhusk.project.validators
     @staticmethod
     def project_file_exists(project):

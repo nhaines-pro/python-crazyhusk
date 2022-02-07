@@ -7,6 +7,8 @@ import os
 # Third Party
 import pkg_resources
 
+__all__ = ["UnrealPlugin"]
+
 
 class UnrealPluginError(Exception):
     """Custom exception representing errors encountered with Unreal Plugins."""
@@ -18,10 +20,8 @@ class PluginDescriptor(object):
     https://docs.unrealengine.com/en-US/API/Runtime/Projects/FPluginDescriptor/index.html
     """
 
-    def __init__(self, plugin_file):
+    def __init__(self):
         """Initialize a PluginDescriptor."""
-        self.plugin_file = plugin_file
-
         self.can_contain_content = False
         self.explicitly_loaded = False
         self.installed = False
@@ -95,7 +95,7 @@ class UnrealPlugin(object):
     """Object wrapper representation of an Unreal Engine plugin."""
 
     def __init__(self, plugin_file):
-        if self.plugin_file is None:
+        if plugin_file is None:
             raise TypeError("UnrealPlugin plugin_file must not be None.")
 
         self.plugin_file = plugin_file
@@ -111,9 +111,9 @@ class UnrealPlugin(object):
         if self.__descriptor is None:
             self.validate()
 
-            with open(self.project_file, encoding="utf-8") as json_project_file:
+            with open(self.plugin_file, encoding="utf-8") as json_plugin_file:
                 self.__descriptor = json.load(
-                    json_project_file, object_hook=PluginDescriptor.to_object
+                    json_plugin_file, object_hook=PluginDescriptor.to_object
                 )
 
         return self.__descriptor

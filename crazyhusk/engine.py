@@ -200,6 +200,10 @@ class UnrealEngine(object):
     @staticmethod
     def engine_exe_exists(engine, executable, *args):
         """Raise exception if the executable is not available on disk."""
+        if not isinstance(engine, UnrealEngine):
+            raise TypeError(
+                f"Must provide an instance of crazyhusk.engine.UnrealEngine, got: {engine!r}"
+            )
         if not os.path.isfile(os.path.realpath(executable)):
             raise UnrealExecutionError(
                 f"Specified executable does not exist: {os.path.realpath(executable)}"
@@ -225,6 +229,10 @@ class UnrealEngine(object):
     @staticmethod
     def engine_dir_exists(engine):
         """Raise exception if this instance is not available on disk."""
+        if not isinstance(engine, UnrealEngine):
+            raise TypeError(
+                f"Must provide an instance of crazyhusk.engine.UnrealEngine, got: {engine!r}"
+            )
         if not os.path.isdir(engine.engine_dir):
             raise UnrealEngineError("Specified engine directory does not exist.")
 

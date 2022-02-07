@@ -136,7 +136,9 @@ class UnrealProject(object):
                 f"Must provide an instance of crazyhusk.project.UnrealProject, got: {project!r}"
             )
         if not os.path.isfile(project.project_file):
-            raise UnrealProjectError("Specified project file does not exist.")
+            raise UnrealProjectError(
+                f"Specified project file does not exist at {project.project_file}."
+            )
 
     @staticmethod
     def valid_project_file_extension(project):

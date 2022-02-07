@@ -42,7 +42,9 @@ class ProjectDescriptor(object):
         descriptor.engine_association = dct.get("EngineAssociation", "")
         descriptor.category = dct.get("Category", "")
         descriptor.description = dct.get("Description", "")
-        descriptor.disable_engine_plugins_by_default = dct.get("DisableEnginePluginsByDefault", False)
+        descriptor.disable_engine_plugins_by_default = dct.get(
+            "DisableEnginePluginsByDefault", False
+        )
         descriptor.is_enterprise_project = dct.get("IsEnterpriseProject", False)
         descriptor.epic_sample_name_hash = dct.get("EpicSampleNameHash")
         descriptor.post_build_steps = dct.get("PostBuildSteps")
@@ -96,7 +98,7 @@ class UnrealProject(object):
     def engine(self, new_engine):
         if not isinstance(new_engine, UnrealEngine):
             new_engine = UnrealEngine.find_engine(new_engine)
-        
+
         new_engine.validate()
         self.__engine = new_engine
 
@@ -163,6 +165,56 @@ class UnrealProject(object):
                 yield os.path.join(
                     self.config_dir, platform, f"{platform}{config_category}.ini"
                 )
+
+    def unreal_path_to_file_path(self, unreal_path, ext=".uasset"):
+        """Convert an Unreal object path to a file path relative to this project."""
+        path_split = unreal_path.split("/")
+        if len(path_split) < 3:
+            raise UnrealProjectError(f"Can't resolve Unreal path: {unreal_path}")
+
+        mount = path_split[1]
+        if mount == "Game":
+            return f"{os.path.join(self.content_dir, path_split[2:])}{ext}"
+        elif mount == "Engine":
+            if not isinstance(self.engine, UnrealEngine):
+                raise UnrealProjectError(
+                    f"Can't resolve Unreal path: {unreal_path} - could not resolve associated UnrealEngine."
+                )
+            return f"{os.path.join(self.engine.content_dir, path_split[2:])}{ext}"
+        else:
+            raise NotImplementedError(
+                f"Can't resolve Unreal path: {unreal_path} - could not find plugin or feature pack mount {mount}."
+            )
+
+    def unreal_path_from_file_path(self, file_path):
+        """Convert a file path to an appropriate Unreal object path for use with this engine."""
+        if (
+            os.path.commonpath([os.path.realpath(file_path), self.content_dir])
+            == self.content_dir
+        ):
+            sub_path = (
+                os.path.splitext(os.path.realpath(file_path))[0]
+                .split(self.content_dir)[1][1:]
+                .replace(os.sep, "/")
+            )
+            return f"/Game/{sub_path}"
+        elif (
+            isinstance(self.engine, UnrealEngine)
+            and os.path.commonpath(
+                [os.path.realpath(file_path), self.engine.content_dir]
+            )
+            == self.engine.content_dir
+        ):
+            sub_path = (
+                os.path.splitext(os.path.realpath(file_path))[0]
+                .split(self.engine.content_dir)[1][1:]
+                .replace(os.sep, "/")
+            )
+            return f"/Engine/{sub_path}"
+        else:
+            raise NotImplementedError(
+                f"Can't resolve to Unreal path: {file_path} - plugin and feature pack mounts not yet supported."
+            )
 
     def validate(self):
         """Raise exceptions if this instance is misconfigured."""

@@ -35,6 +35,7 @@ class UnrealConfigError(Exception):
 
 class UnrealConfigParser(configparser.RawConfigParser):
     """Object wrapper representing a configuration stack."""
+
     RE_OPTION_SPECIALCHARS = re.compile(r"^([+-.!])")
 
     def __init__(self):

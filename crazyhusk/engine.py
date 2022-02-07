@@ -200,6 +200,10 @@ class UnrealEngine(object):
     @staticmethod
     def engine_exe_exists(engine, executable, *args):
         """Raise exception if the executable is not available on disk."""
+        if not isinstance(engine, UnrealEngine):
+            raise TypeError(
+                f"Must provide an instance of crazyhusk.engine.UnrealEngine, got: {engine!r}"
+            )
         if not os.path.isfile(os.path.realpath(executable)):
             raise UnrealExecutionError(
                 f"Specified executable does not exist: {os.path.realpath(executable)}"
@@ -225,6 +229,10 @@ class UnrealEngine(object):
     @staticmethod
     def engine_dir_exists(engine):
         """Raise exception if this instance is not available on disk."""
+        if not isinstance(engine, UnrealEngine):
+            raise TypeError(
+                f"Must provide an instance of crazyhusk.engine.UnrealEngine, got: {engine!r}"
+            )
         if not os.path.isdir(engine.engine_dir):
             raise UnrealEngineError("Specified engine directory does not exist.")
 
@@ -254,6 +262,49 @@ class UnrealEngine(object):
     def is_source_build(self):
         """Determine if this engine is a Source distribution."""
         return os.path.isfile(os.path.join(self.build_dir, "SourceDistribution.txt"))
+
+    def unreal_path_to_file_path(self, unreal_path, ext=".uasset"):
+        """Convert an Unreal object path to a file path relative to this engine."""
+        path_split = unreal_path.split("/")
+        if len(path_split) < 3:
+            raise UnrealEngineError(f"Can't resolve Unreal path: {unreal_path}")
+
+        mount = path_split[1]
+        if mount == "Game":
+            raise UnrealEngineError(
+                f"Can't resolve Unreal path: {unreal_path} - could not resolve associated UnrealProject."
+            )
+        elif mount == "Engine":
+            return f"{os.path.join(self.content_dir, path_split[2:])}{ext}"
+        else:
+            raise NotImplementedError(
+                f"Can't resolve Unreal path: {unreal_path} - could not find plugin or feature pack mount {mount}."
+            )
+
+    def unreal_path_from_file_path(self, file_path):
+        """Convert a file path to an appropriate Unreal object path for use with this engine."""
+        if (
+            not os.path.commonpath([os.path.realpath(file_path), self.base_dir])
+            == self.base_dir
+        ):
+            raise UnrealEngineError(
+                f"File path: {file_path} is not part of this UnrealEngine: {self!r}"
+            )
+
+        if (
+            os.path.commonpath([os.path.realpath(file_path), self.content_dir])
+            == self.content_dir
+        ):
+            sub_path = (
+                os.path.splitext(os.path.realpath(file_path))[0]
+                .split(self.content_dir)[1][1:]
+                .replace(os.sep, "/")
+            )
+            return f"/Engine/{sub_path}"
+        else:
+            raise NotImplementedError(
+                f"Can't resolve to Unreal path: {file_path} - plugin and feature pack mounts not yet supported."
+            )
 
     def validate(self):
         """Raise exceptions if this instance is misconfigured."""

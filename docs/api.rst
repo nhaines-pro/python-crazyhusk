@@ -12,6 +12,12 @@ CLI
 .. automodule:: crazyhusk.cli
     :members:
 
+Config
+----------
+
+.. automodule:: crazyhusk.config
+    :members:
+
 Engine
 --------------
 
@@ -22,6 +28,12 @@ Logging
 --------------
 
 .. automodule:: crazyhusk.logs
+    :members:
+
+Project
+----------
+
+.. automodule:: crazyhusk.project
     :members:
 
 Windows Platform

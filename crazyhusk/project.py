@@ -26,6 +26,7 @@ class ProjectDescriptor(object):
         self.engine_association = None
         self.category = ""
         self.description = ""
+        self.disable_engine_plugins_by_default = False
         self.is_enterprise_project = False
         self.epic_sample_name_hash = None
         self.post_build_steps = None
@@ -40,6 +41,7 @@ class ProjectDescriptor(object):
         descriptor.engine_association = dct.get("EngineAssociation", "")
         descriptor.category = dct.get("Category", "")
         descriptor.description = dct.get("Description", "")
+        descriptor.disable_engine_plugins_by_default = dct.get("DisableEnginePluginsByDefault", False)
         descriptor.is_enterprise_project = dct.get("IsEnterpriseProject", False)
         descriptor.epic_sample_name_hash = dct.get("EpicSampleNameHash")
         descriptor.post_build_steps = dct.get("PostBuildSteps")

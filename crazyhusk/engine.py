@@ -11,6 +11,7 @@ import pkg_resources
 # CrazyHusk
 from crazyhusk.config import CONFIG_CATEGORIES, UnrealConfigParser
 from crazyhusk.logs import FilterEngineRun
+from crazyhusk.plugin import UnrealPlugin
 
 __all__ = ["UnrealEngine", "UnrealEngineError"]
 
@@ -77,6 +78,7 @@ class UnrealEngine(object):
         self.association_name = association_name
         self.__version = None
         self.__in_context = False
+        self.__plugins = None
         self.__process = None
 
     def __repr__(self):
@@ -153,6 +155,18 @@ class UnrealEngine(object):
     def plugins_dir(self):
         """Path to this Engine's Plugins directory."""
         return os.path.join(self.base_dir, "Engine", "Plugins")
+
+    @property
+    def plugins(self):
+        if self.__plugins is None:
+            self.__plugins = {}
+            for _root, _dirs, _files in os.walk(self.plugins_dir):
+                for _file in _files:
+                    if os.path.splitext(_file)[-1] == ".uplugin":
+                        plugin = UnrealPlugin(os.path.join(_root, _file))
+                        self.__plugins[plugin.name] = plugin
+                        break
+        return self.__plugins
 
     @property
     def version(self):

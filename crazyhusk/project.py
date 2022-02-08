@@ -2,6 +2,7 @@
 # Standard Library
 import json
 import os
+from copy import deepcopy
 
 # Third Party
 import pkg_resources
@@ -9,7 +10,7 @@ import pkg_resources
 # CrazyHusk
 from crazyhusk.config import CONFIG_CATEGORIES, UnrealConfigParser
 from crazyhusk.engine import UnrealEngine
-from crazyhusk.plugin import PluginReferenceDescriptor
+from crazyhusk.plugin import PluginReferenceDescriptor, UnrealPlugin
 
 __all__ = ["UnrealProject"]
 
@@ -80,6 +81,7 @@ class UnrealProject(object):
 
         self.__descriptor = None
         self.__engine = None
+        self.__plugins = None
 
     def __repr__(self):
         """Python interpreter representation."""
@@ -137,6 +139,22 @@ class UnrealProject(object):
     def plugins_dir(self):
         """Get the project's Plugins directory."""
         return os.path.join(self.project_dir, "Plugins")
+
+    @property
+    def plugins(self):
+        if self.__plugins is None:
+            if self.engine is None:
+                self.__plugins = {}
+            else:
+                self.__plugins = deepcopy(self.engine.plugins)
+
+            for _root, _dirs, _files in os.walk(self.plugins_dir):
+                for _file in _files:
+                    if os.path.splitext(_file)[-1] == ".uplugin":
+                        plugin = UnrealPlugin(os.path.join(_root, _file))
+                        self.__plugins[plugin.name] = plugin
+                        break
+        return self.__plugins
 
     @property
     def saved_dir(self):

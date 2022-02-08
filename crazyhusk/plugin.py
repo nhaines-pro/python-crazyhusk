@@ -231,6 +231,37 @@ class UnrealPlugin(object):
         if not os.path.splitext(plugin.plugin_file)[-1] == ".uplugin":
             raise UnrealPluginError(f"Not a uplugin file: {plugin.plugin_file}")
 
+    def unreal_path_to_file_path(self, unreal_path, ext=".uasset"):
+        """Convert an Unreal object path to a file path relative to this plugin."""
+        path_split = unreal_path.split("/")
+        if len(path_split) < 3:
+            raise UnrealPluginError(f"Can't resolve Unreal path: {unreal_path}")
+
+        mount = path_split[1]
+        if mount == "Game":
+            raise UnrealPluginError(
+                f"Can't resolve Unreal path: {unreal_path} - could not resolve associated UnrealProject."
+            )
+        if mount == "Engine":
+            raise UnrealPluginError(
+                f"Can't resolve Unreal path: {unreal_path} - could not resolve associated UnrealEngine."
+            )
+        if mount == self.name:
+            return os.path.join(self.content_dir, *path_split[2:]) + ext
+
+    def unreal_path_from_file_path(self, file_path):
+        """Convert a file path to an appropriate Unreal object path for use with this plugin."""
+        if (
+            os.path.commonpath([os.path.realpath(file_path), self.content_dir])
+            == self.content_dir
+        ):
+            sub_path = (
+                os.path.splitext(os.path.realpath(file_path))[0]
+                .split(self.content_dir)[1][1:]
+                .replace(os.sep, "/")
+            )
+            return f"/{self.name}/{sub_path}"
+
     def validate(self):
         """Raise exceptions if this instance is misconfigured."""
         for entry_point in pkg_resources.iter_entry_points(

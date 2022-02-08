@@ -210,20 +210,24 @@ class UnrealProject(object):
 
         mount = path_split[1]
         if mount == "Game":
-            return f"{os.path.join(self.content_dir, path_split[2:])}{ext}"
-        elif mount == "Engine":
+            return os.path.join(self.content_dir, *path_split[2:]) + ext
+
+        if mount == "Engine":
             if not isinstance(self.engine, UnrealEngine):
                 raise UnrealProjectError(
                     f"Can't resolve Unreal path: {unreal_path} - could not resolve associated UnrealEngine."
                 )
-            return f"{os.path.join(self.engine.content_dir, path_split[2:])}{ext}"
-        else:
-            raise NotImplementedError(
-                f"Can't resolve Unreal path: {unreal_path} - could not find plugin or feature pack mount {mount}."
-            )
+            return os.path.join(self.engine.content_dir, *path_split[2:]) + ext
+
+        if mount in self.plugins:
+            return self.plugins[mount].unreal_path_to_file_path(unreal_path, ext)
+
+        raise UnrealProjectError(
+            f"Can't resolve Unreal path: {unreal_path} - could not find plugin or feature pack mount {mount}."
+        )
 
     def unreal_path_from_file_path(self, file_path):
-        """Convert a file path to an appropriate Unreal object path for use with this engine."""
+        """Convert a file path to an appropriate Unreal object path for use with this project."""
         if (
             os.path.commonpath([os.path.realpath(file_path), self.content_dir])
             == self.content_dir
@@ -234,7 +238,8 @@ class UnrealProject(object):
                 .replace(os.sep, "/")
             )
             return f"/Game/{sub_path}"
-        elif (
+
+        if (
             isinstance(self.engine, UnrealEngine)
             and os.path.commonpath(
                 [os.path.realpath(file_path), self.engine.content_dir]
@@ -247,10 +252,11 @@ class UnrealProject(object):
                 .replace(os.sep, "/")
             )
             return f"/Engine/{sub_path}"
-        else:
-            raise NotImplementedError(
-                f"Can't resolve to Unreal path: {file_path} - plugin and feature pack mounts not yet supported."
-            )
+
+        for plugin in self.plugins.values():
+            unreal_path = plugin.unreal_path_from_file_path(file_path)
+            if unreal_path is not None:
+                return unreal_path
 
     def validate(self):
         """Raise exceptions if this instance is misconfigured."""

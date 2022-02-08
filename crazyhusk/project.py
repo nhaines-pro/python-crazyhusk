@@ -2,6 +2,7 @@
 # Standard Library
 import json
 import os
+from copy import deepcopy
 
 # Third Party
 import pkg_resources
@@ -9,6 +10,7 @@ import pkg_resources
 # CrazyHusk
 from crazyhusk.config import CONFIG_CATEGORIES, UnrealConfigParser
 from crazyhusk.engine import UnrealEngine
+from crazyhusk.plugin import PluginReferenceDescriptor, UnrealPlugin
 
 __all__ = ["UnrealProject"]
 
@@ -33,13 +35,22 @@ class ProjectDescriptor(object):
         self.post_build_steps = None
         self.pre_build_steps = None
         self.target_platforms = []
-        self.plugin_reference_descriptors = set()
-        self.module_descriptors = set()
+        self.__plugins = []
+        self.__modules = []
+
+    def __repr__(self):
+        """Python interpreter representation of ProjectDescriptor."""
+        return f"<ProjectDescriptor {self.description}>"
+
+    @property
+    def plugins(self):
+        for plugin in self.__plugins:
+            yield PluginReferenceDescriptor.to_object(plugin)
 
     @staticmethod
     def to_object(dct):
         descriptor = ProjectDescriptor()
-        descriptor.engine_association = dct.get("EngineAssociation", "")
+        descriptor.engine_association = dct.get("EngineAssociation")
         descriptor.category = dct.get("Category", "")
         descriptor.description = dct.get("Description", "")
         descriptor.disable_engine_plugins_by_default = dct.get(
@@ -50,9 +61,15 @@ class ProjectDescriptor(object):
         descriptor.post_build_steps = dct.get("PostBuildSteps")
         descriptor.pre_build_steps = dct.get("PreBuildSteps")
         descriptor.target_platforms = dct.get("TargetPlatforms", [])
-        descriptor.plugin_reference_descriptors = set(dct.get("Plugins", []))
-        descriptor.module_descriptors = set(dct.get("Modules", []))
-        return descriptor
+        descriptor.__plugins = dct.get("Plugins", [])
+        descriptor.__modules = dct.get("Modules", [])
+
+        if descriptor.is_valid():
+            return descriptor
+        return dct
+
+    def is_valid(self):
+        return self.engine_association is not None
 
 
 class UnrealProject(object):
@@ -64,6 +81,7 @@ class UnrealProject(object):
 
         self.__descriptor = None
         self.__engine = None
+        self.__plugins = None
 
     def __repr__(self):
         """Python interpreter representation."""
@@ -123,6 +141,22 @@ class UnrealProject(object):
         return os.path.join(self.project_dir, "Plugins")
 
     @property
+    def plugins(self):
+        if self.__plugins is None:
+            if self.engine is None:
+                self.__plugins = {}
+            else:
+                self.__plugins = deepcopy(self.engine.plugins)
+
+            for _root, _dirs, _files in os.walk(self.plugins_dir):
+                for _file in _files:
+                    if os.path.splitext(_file)[-1] == ".uplugin":
+                        plugin = UnrealPlugin(os.path.join(_root, _file))
+                        self.__plugins[plugin.name] = plugin
+                        break
+        return self.__plugins
+
+    @property
     def saved_dir(self):
         """Get the project's Saved directory."""
         return os.path.join(self.project_dir, "Saved")
@@ -136,7 +170,9 @@ class UnrealProject(object):
                 f"Must provide an instance of crazyhusk.project.UnrealProject, got: {project!r}"
             )
         if not os.path.isfile(project.project_file):
-            raise UnrealProjectError("Specified project file does not exist.")
+            raise UnrealProjectError(
+                f"Specified project file does not exist at {project.project_file}."
+            )
 
     @staticmethod
     def valid_project_file_extension(project):
@@ -174,20 +210,24 @@ class UnrealProject(object):
 
         mount = path_split[1]
         if mount == "Game":
-            return f"{os.path.join(self.content_dir, path_split[2:])}{ext}"
-        elif mount == "Engine":
+            return os.path.join(self.content_dir, *path_split[2:]) + ext
+
+        if mount == "Engine":
             if not isinstance(self.engine, UnrealEngine):
                 raise UnrealProjectError(
                     f"Can't resolve Unreal path: {unreal_path} - could not resolve associated UnrealEngine."
                 )
-            return f"{os.path.join(self.engine.content_dir, path_split[2:])}{ext}"
-        else:
-            raise NotImplementedError(
-                f"Can't resolve Unreal path: {unreal_path} - could not find plugin or feature pack mount {mount}."
-            )
+            return os.path.join(self.engine.content_dir, *path_split[2:]) + ext
+
+        if mount in self.plugins:
+            return self.plugins[mount].unreal_path_to_file_path(unreal_path, ext)
+
+        raise UnrealProjectError(
+            f"Can't resolve Unreal path: {unreal_path} - could not find plugin or feature pack mount {mount}."
+        )
 
     def unreal_path_from_file_path(self, file_path):
-        """Convert a file path to an appropriate Unreal object path for use with this engine."""
+        """Convert a file path to an appropriate Unreal object path for use with this project."""
         if (
             os.path.commonpath([os.path.realpath(file_path), self.content_dir])
             == self.content_dir
@@ -198,7 +238,8 @@ class UnrealProject(object):
                 .replace(os.sep, "/")
             )
             return f"/Game/{sub_path}"
-        elif (
+
+        if (
             isinstance(self.engine, UnrealEngine)
             and os.path.commonpath(
                 [os.path.realpath(file_path), self.engine.content_dir]
@@ -211,10 +252,11 @@ class UnrealProject(object):
                 .replace(os.sep, "/")
             )
             return f"/Engine/{sub_path}"
-        else:
-            raise NotImplementedError(
-                f"Can't resolve to Unreal path: {file_path} - plugin and feature pack mounts not yet supported."
-            )
+
+        for plugin in self.plugins.values():
+            unreal_path = plugin.unreal_path_from_file_path(file_path)
+            if unreal_path is not None:
+                return unreal_path
 
     def validate(self):
         """Raise exceptions if this instance is misconfigured."""

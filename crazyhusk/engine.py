@@ -11,6 +11,7 @@ import pkg_resources
 # CrazyHusk
 from crazyhusk.config import CONFIG_CATEGORIES, UnrealConfigParser
 from crazyhusk.logs import FilterEngineRun
+from crazyhusk.plugin import UnrealPlugin
 
 __all__ = ["UnrealEngine", "UnrealEngineError"]
 
@@ -77,6 +78,7 @@ class UnrealEngine(object):
         self.association_name = association_name
         self.__version = None
         self.__in_context = False
+        self.__plugins = None
         self.__process = None
 
     def __repr__(self):
@@ -153,6 +155,18 @@ class UnrealEngine(object):
     def plugins_dir(self):
         """Path to this Engine's Plugins directory."""
         return os.path.join(self.base_dir, "Engine", "Plugins")
+
+    @property
+    def plugins(self):
+        if self.__plugins is None:
+            self.__plugins = {}
+            for _root, _dirs, _files in os.walk(self.plugins_dir):
+                for _file in _files:
+                    if os.path.splitext(_file)[-1] == ".uplugin":
+                        plugin = UnrealPlugin(os.path.join(_root, _file))
+                        self.__plugins[plugin.name] = plugin
+                        break
+        return self.__plugins
 
     @property
     def version(self):
@@ -274,12 +288,16 @@ class UnrealEngine(object):
             raise UnrealEngineError(
                 f"Can't resolve Unreal path: {unreal_path} - could not resolve associated UnrealProject."
             )
-        elif mount == "Engine":
-            return f"{os.path.join(self.content_dir, path_split[2:])}{ext}"
-        else:
-            raise NotImplementedError(
-                f"Can't resolve Unreal path: {unreal_path} - could not find plugin or feature pack mount {mount}."
-            )
+
+        if mount == "Engine":
+            return os.path.join(self.content_dir, *path_split[2:]) + ext
+
+        if mount in self.plugins:
+            return self.plugins[mount].unreal_path_to_file_path(unreal_path, ext)
+
+        raise UnrealEngineError(
+            f"Can't resolve Unreal path: {unreal_path} - could not find plugin or feature pack mount {mount}."
+        )
 
     def unreal_path_from_file_path(self, file_path):
         """Convert a file path to an appropriate Unreal object path for use with this engine."""
@@ -301,10 +319,13 @@ class UnrealEngine(object):
                 .replace(os.sep, "/")
             )
             return f"/Engine/{sub_path}"
-        else:
-            raise NotImplementedError(
-                f"Can't resolve to Unreal path: {file_path} - plugin and feature pack mounts not yet supported."
-            )
+
+        for plugin in self.plugins.values():
+            unreal_path = plugin.unreal_path_from_file_path(file_path)
+            if unreal_path is not None:
+                return unreal_path
+
+        raise UnrealEngineError(f"Can't resolve to Unreal path: {file_path}.")
 
     def validate(self):
         """Raise exceptions if this instance is misconfigured."""

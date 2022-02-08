@@ -41,9 +41,9 @@ class PluginDescriptor(object):
         self.friendly_name = ""
         self.localization_targets = []
         self.marketplace_url = ""
-        self.module_descriptors = set()
+        self.__modules = []
         self.parent_plugin_name = ""
-        self.plugin_descriptors = set()
+        self.__plugins = []
         self.post_build_steps = None
         self.pre_build_steps = None
         self.supported_programs = []
@@ -55,6 +55,11 @@ class PluginDescriptor(object):
     def __repr__(self):
         """Python interpreter representation of PluginDescriptor."""
         return f"<PluginDescriptor {self.friendly_name} version {self.version_name}>"
+
+    @property
+    def plugins(self):
+        for plugin in self.__plugins:
+            yield PluginReferenceDescriptor.to_object(plugin)
 
     @staticmethod
     def to_object(dct):
@@ -78,9 +83,9 @@ class PluginDescriptor(object):
         descriptor.friendly_name = dct.get("FriendlyName", "")
         descriptor.localization_targets = dct.get("LocalizationTargets", [])
         descriptor.marketplace_url = dct.get("MarketplaceURL", "")
-        descriptor.module_descriptors = set(dct.get("Modules", []))
+        descriptor.__modules = dct.get("Modules", [])
         descriptor.parent_plugin_name = dct.get("ParentPluginName", "")
-        descriptor.plugin_descriptors = set(dct.get("Plugins", []))
+        descriptor.__plugins = dct.get("Plugins", [])
         descriptor.post_build_steps = dct.get("PostBuildSteps")
         descriptor.pre_build_steps = dct.get("PreBuildSteps")
         descriptor.supported_programs = dct.get("SupportedPrograms", [])
@@ -88,7 +93,71 @@ class PluginDescriptor(object):
         descriptor.support_url = dct.get("SupportURL", "")
         descriptor.version = dct.get("Version", 1)
         descriptor.version_name = dct.get("VersionName", "")
-        return descriptor
+
+        if descriptor.is_valid():
+            return descriptor
+        return dct
+
+    def is_valid(self):
+        return (
+            self.friendly_name is not None
+            and self.friendly_name != ""
+            and self.version_name is not None
+            and self.version_name != ""
+        )
+
+
+class PluginReferenceDescriptor(object):
+    """Object wrapper representation of Unreal Plugin descriptor reference, equivalent to FPluginReferenceDescriptor.
+
+    https://docs.unrealengine.com/en-US/API/Runtime/Projects/FPluginReferenceDescriptor/index.html
+    """
+
+    def __init__(self):
+        """Initialize a new instance of PluginReferenceDescriptor."""
+        self.enabled = False
+        self.blacklist_platforms = []
+        self.blacklist_target_configurations = []
+        self.blacklist_targets = []
+        self.optional = False
+        self.description = ""
+        self.marketplace_url = ""
+        self.name = None
+        self.supported_target_platforms = []
+        self.whitelist_platforms = []
+        self.whitelist_target_configurations = []
+        self.whitelist_targets = []
+
+    def __repr__(self):
+        """Python interpreter representation of PluginReferenceDescriptor."""
+        return f"<PluginReferenceDescriptor {self.name}>"
+
+    @staticmethod
+    def to_object(dct):
+        ref = PluginReferenceDescriptor()
+        ref.enabled = dct.get("Enabled", False)
+        ref.blacklist_platforms = dct.get("BlacklistPlatforms", [])
+        ref.blacklist_target_configurations = dct.get(
+            "BlacklistTargetConfigurations", []
+        )
+        ref.blacklist_targets = dct.get("BlacklistTargets", [])
+        ref.optional = dct.get("Optional", False)
+        ref.description = dct.get("Description", "")
+        ref.marketplace_url = dct.get("MarketplaceURL", "")
+        ref.name = dct.get("Name")
+        ref.supported_target_platforms = dct.get("SupportedTargetPlatforms", [])
+        ref.whitelist_platforms = dct.get("WhitelistPlatforms", [])
+        ref.whitelist_target_configurations = dct.get(
+            "WhitelistTargetConfigurations", []
+        )
+        ref.whitelist_targets = dct.get("WhitelistTargets", [])
+
+        if ref.is_valid():
+            return ref
+        return dct
+
+    def is_valid(self):
+        return self.name is not None and self.name != ""
 
 
 class UnrealPlugin(object):

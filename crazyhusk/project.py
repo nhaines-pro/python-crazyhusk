@@ -9,6 +9,7 @@ import pkg_resources
 # CrazyHusk
 from crazyhusk.config import CONFIG_CATEGORIES, UnrealConfigParser
 from crazyhusk.engine import UnrealEngine
+from crazyhusk.plugin import PluginReferenceDescriptor
 
 __all__ = ["UnrealProject"]
 
@@ -33,13 +34,22 @@ class ProjectDescriptor(object):
         self.post_build_steps = None
         self.pre_build_steps = None
         self.target_platforms = []
-        self.plugin_reference_descriptors = set()
-        self.module_descriptors = set()
+        self.__plugins = []
+        self.__modules = []
+
+    def __repr__(self):
+        """Python interpreter representation of ProjectDescriptor."""
+        return f"<ProjectDescriptor {self.description}>"
+
+    @property
+    def plugins(self):
+        for plugin in self.__plugins:
+            yield PluginReferenceDescriptor.to_object(plugin)
 
     @staticmethod
     def to_object(dct):
         descriptor = ProjectDescriptor()
-        descriptor.engine_association = dct.get("EngineAssociation", "")
+        descriptor.engine_association = dct.get("EngineAssociation")
         descriptor.category = dct.get("Category", "")
         descriptor.description = dct.get("Description", "")
         descriptor.disable_engine_plugins_by_default = dct.get(
@@ -50,9 +60,15 @@ class ProjectDescriptor(object):
         descriptor.post_build_steps = dct.get("PostBuildSteps")
         descriptor.pre_build_steps = dct.get("PreBuildSteps")
         descriptor.target_platforms = dct.get("TargetPlatforms", [])
-        descriptor.plugin_reference_descriptors = set(dct.get("Plugins", []))
-        descriptor.module_descriptors = set(dct.get("Modules", []))
-        return descriptor
+        descriptor.__plugins = dct.get("Plugins", [])
+        descriptor.__modules = dct.get("Modules", [])
+
+        if descriptor.is_valid():
+            return descriptor
+        return dct
+
+    def is_valid(self):
+        return self.engine_association is not None
 
 
 class UnrealProject(object):

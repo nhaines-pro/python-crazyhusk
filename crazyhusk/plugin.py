@@ -8,6 +8,7 @@ import os
 import pkg_resources
 
 # CrazyHusk
+from crazyhusk.code import CodeTemplate
 from crazyhusk.module import ModuleDescriptor
 
 __all__ = ["UnrealPlugin"]
@@ -186,6 +187,18 @@ class UnrealPlugin(object):
         return f"<UnrealPlugin at {self.plugin_file}>"
 
     @property
+    def code_templates(self):
+        if self.__code_templates is None:
+            self.__code_templates = {
+                template.name: template
+                for entry_point in pkg_resources.iter_entry_points(
+                    "crazyhusk.code.listers"
+                )
+                for template in entry_point.load()(self)
+            }
+        return self.__code_templates
+
+    @property
     def descriptor(self):
         if self.__descriptor is None:
             self.validate()
@@ -237,6 +250,23 @@ class UnrealPlugin(object):
     def content_dir(self):
         """Directory path of this plugin's Content."""
         return os.path.join(self.plugin_dir, "Content")
+
+    # crazyhusk.code.listers
+    @staticmethod
+    def list_plugin_code_templates(plugin):
+        if isinstance(plugin, UnrealPlugin):
+            for template_filename in os.listdir(
+                os.path.join(plugin.content_dir, "Editor", "Templates")
+            ):
+                with open(
+                    os.path.join(
+                        plugin.content_dir, "Editor", "Templates", template_filename
+                    ),
+                    encoding="utf-8",
+                ) as _template_file:
+                    yield CodeTemplate(
+                        os.path.splitext(template_filename)[0], _template_file.read()
+                    )
 
     # crazyhusk.plugin.validators
     @staticmethod

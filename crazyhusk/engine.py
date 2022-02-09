@@ -9,6 +9,7 @@ import subprocess
 import pkg_resources
 
 # CrazyHusk
+from crazyhusk.code import CodeTemplate
 from crazyhusk.config import CONFIG_CATEGORIES, UnrealConfigParser
 from crazyhusk.logs import FilterEngineRun
 from crazyhusk.plugin import UnrealPlugin
@@ -80,6 +81,7 @@ class UnrealEngine(object):
         self.__in_context = False
         self.__plugins = None
         self.__process = None
+        self.__code_templates = None
 
     def __repr__(self):
         """Python interpreter representation of this instance."""
@@ -140,6 +142,18 @@ class UnrealEngine(object):
             return "Installed"
         if os.path.isfile(os.path.join(self.build_dir, "SourceDistribution.txt")):
             return "Source"
+
+    @property
+    def code_templates(self):
+        if self.__code_templates is None:
+            self.__code_templates = {
+                template.name: template
+                for entry_point in pkg_resources.iter_entry_points(
+                    "crazyhusk.code.listers"
+                )
+                for template in entry_point.load()(self)
+            }
+        return self.__code_templates
 
     @property
     def config_dir(self):
@@ -209,6 +223,23 @@ class UnrealEngine(object):
         """Log all found engines."""
         for engine in sorted(UnrealEngine.list_all_engines()):
             logging.info(engine)
+
+    # crazyhusk.code.listers
+    @staticmethod
+    def list_engine_code_templates(engine):
+        if isinstance(engine, UnrealEngine):
+            for template_filename in os.listdir(
+                os.path.join(engine.content_dir, "Editor", "Templates")
+            ):
+                with open(
+                    os.path.join(
+                        engine.content_dir, "Editor", "Templates", template_filename
+                    ),
+                    encoding="utf-8",
+                ) as _template_file:
+                    yield CodeTemplate(
+                        os.path.splitext(template_filename)[0], _template_file.read()
+                    )
 
     # crazyhusk.engine.sanitizers
     @staticmethod

@@ -10,6 +10,7 @@ import pkg_resources
 # CrazyHusk
 from crazyhusk.config import CONFIG_CATEGORIES, UnrealConfigParser
 from crazyhusk.engine import UnrealEngine
+from crazyhusk.module import ModuleDescriptor
 from crazyhusk.plugin import PluginReferenceDescriptor, UnrealPlugin
 
 __all__ = ["UnrealProject"]
@@ -41,6 +42,11 @@ class ProjectDescriptor(object):
     def __repr__(self):
         """Python interpreter representation of ProjectDescriptor."""
         return f"<ProjectDescriptor {self.description}>"
+
+    @property
+    def modules(self):
+        for module in self.__modules:
+            yield ModuleDescriptor.to_object(module)
 
     @property
     def plugins(self):

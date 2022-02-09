@@ -30,6 +30,18 @@ Logging
 .. automodule:: crazyhusk.logs
     :members:
 
+Modules
+----------
+
+.. automodule:: crazyhusk.module
+    :members:
+
+Plugins
+----------
+
+.. automodule:: crazyhusk.plugin
+    :members:
+
 Project
 ----------
 

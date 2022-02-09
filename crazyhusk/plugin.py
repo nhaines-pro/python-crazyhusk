@@ -7,6 +7,9 @@ import os
 # Third Party
 import pkg_resources
 
+# CrazyHusk
+from crazyhusk.module import ModuleDescriptor
+
 __all__ = ["UnrealPlugin"]
 
 
@@ -55,6 +58,11 @@ class PluginDescriptor(object):
     def __repr__(self):
         """Python interpreter representation of PluginDescriptor."""
         return f"<PluginDescriptor {self.friendly_name} version {self.version_name}>"
+
+    @property
+    def modules(self):
+        for module in self.__modules:
+            yield ModuleDescriptor.to_object(module)
 
     @property
     def plugins(self):

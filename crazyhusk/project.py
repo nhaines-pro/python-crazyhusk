@@ -101,13 +101,15 @@ class UnrealProject(object):
     @property
     def code_templates(self):
         if self.__code_templates is None:
-            self.__code_templates = {
-                template.name: template
-                for entry_point in pkg_resources.iter_entry_points(
-                    "crazyhusk.code.listers"
-                )
-                for template in entry_point.load()(self)
-            }
+            self.__code_templates = {}
+            if self.engine is None:
+                items = (self, *self.plugins.values())
+            else:
+                items = (self.engine, self.engine.plugins.values(), self, *self.plugins.values())
+            for entry_point in pkg_resources.iter_entry_points("crazyhusk.code.listers"):
+                for item in items:
+                    for template in entry_point.load()(item):
+                        self.__code_templates[template.name] = template
         return self.__code_templates
 
     @property

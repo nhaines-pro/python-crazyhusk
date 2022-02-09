@@ -58,6 +58,10 @@ class ModuleDescriptor(object):
         self.whitelist_target_configurations = []
         self.whitelist_targets = []
 
+    def __repr__(self):
+        """Python interpreter representation of ModuleDescriptor."""
+        return f"<ModuleDescriptor {self.name}>"
+
     def __hash__(self):
         """Provide a consistent identity."""
         return hash(self.name)
@@ -96,7 +100,7 @@ class ModuleDescriptor(object):
     def is_valid(self):
         return (
             self.name is not None
-            and self.friendly_name != ""
+            and self.name != ""
             and self.host_type in HOST_TYPES
             and self.loading_phase in LOADING_PHASES
         )

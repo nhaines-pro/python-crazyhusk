@@ -150,7 +150,9 @@ class UnrealEngine(object):
         if self.__code_templates is None:
             self.__code_templates = {}
             items = (self, *self.plugins.values())
-            for entry_point in pkg_resources.iter_entry_points("crazyhusk.code.listers"):
+            for entry_point in pkg_resources.iter_entry_points(
+                "crazyhusk.code.listers"
+            ):
                 for item in items:
                     for template in entry_point.load()(item):
                         self.__code_templates[template.name] = template

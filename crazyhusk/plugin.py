@@ -178,6 +178,8 @@ class UnrealPlugin(object):
         self.plugin_file = plugin_file
         self.__descriptor = None
         self.__name = None
+        self.__modules = None
+        self.__plugin_refs = None
 
     def __repr__(self):
         """Python interpreter representation of UnrealPlugin."""
@@ -196,6 +198,16 @@ class UnrealPlugin(object):
         return self.__descriptor
 
     @property
+    def modules(self):
+        if self.__modules is None:
+            self.__modules = {
+                module.name: module
+                for module in self.descriptor.modules
+                if isinstance(module, ModuleDescriptor)
+            }
+        return self.__modules
+
+    @property
     def name(self):
         if self.__name is None:
             self.__name = os.path.splitext(os.path.basename(self.plugin_file))[0]
@@ -205,6 +217,16 @@ class UnrealPlugin(object):
     def plugin_dir(self):
         """Directory path of this plugin."""
         return os.path.dirname(self.plugin_file)
+
+    @property
+    def plugin_refs(self):
+        if self.__plugin_refs is None:
+            self.__plugin_refs = {
+                plugin.name: plugin
+                for plugin in self.descriptor.plugins
+                if isinstance(plugin, PluginReferenceDescriptor)
+            }
+        return self.__plugin_refs
 
     @property
     def config_dir(self):

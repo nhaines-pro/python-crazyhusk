@@ -87,6 +87,7 @@ class UnrealProject(object):
 
         self.__descriptor = None
         self.__engine = None
+        self.__modules = None
         self.__plugins = None
 
     def __repr__(self):
@@ -145,6 +146,16 @@ class UnrealProject(object):
     def plugins_dir(self):
         """Get the project's Plugins directory."""
         return os.path.join(self.project_dir, "Plugins")
+
+    @property
+    def modules(self):
+        if self.__modules is None:
+            self.__modules = {
+                module.name: module
+                for module in self.descriptor.modules
+                if isinstance(module, ModuleDescriptor)
+            }
+        return self.__modules
 
     @property
     def plugins(self):

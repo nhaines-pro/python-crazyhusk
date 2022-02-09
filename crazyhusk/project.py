@@ -1,5 +1,7 @@
 """Object wrappers for Unreal projects."""
+
 # Standard Library
+import glob
 import json
 import os
 from copy import deepcopy
@@ -196,17 +198,16 @@ class UnrealProject(object):
     @staticmethod
     def list_project_code_templates(project):
         if isinstance(project, UnrealProject):
-            for template_filename in os.listdir(
-                os.path.join(project.content_dir, "Editor", "Templates")
+            for template_filename in glob.iglob(
+                os.path.join(project.content_dir, "Editor", "Templates", "*.template")
             ):
                 with open(
-                    os.path.join(
-                        project.content_dir, "Editor", "Templates", template_filename
-                    ),
+                    template_filename,
                     encoding="utf-8",
                 ) as _template_file:
                     yield CodeTemplate(
-                        os.path.splitext(template_filename)[0], _template_file.read()
+                        os.path.basename(os.path.splitext(template_filename)[0]),
+                        _template_file.read(),
                     )
 
     # crazyhusk.project.validators

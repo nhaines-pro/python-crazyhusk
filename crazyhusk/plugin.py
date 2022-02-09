@@ -1,6 +1,7 @@
 """Wrapper objects for Unreal plugins."""
 
 # Standard Library
+import glob
 import json
 import os
 
@@ -181,6 +182,7 @@ class UnrealPlugin(object):
         self.__name = None
         self.__modules = None
         self.__plugin_refs = None
+        self.__code_templates = None
 
     def __repr__(self):
         """Python interpreter representation of UnrealPlugin."""
@@ -255,17 +257,16 @@ class UnrealPlugin(object):
     @staticmethod
     def list_plugin_code_templates(plugin):
         if isinstance(plugin, UnrealPlugin):
-            for template_filename in os.listdir(
-                os.path.join(plugin.content_dir, "Editor", "Templates")
+            for template_filename in glob.iglob(
+                os.path.join(plugin.content_dir, "Editor", "Templates", "*.template")
             ):
                 with open(
-                    os.path.join(
-                        plugin.content_dir, "Editor", "Templates", template_filename
-                    ),
+                    template_filename,
                     encoding="utf-8",
                 ) as _template_file:
                     yield CodeTemplate(
-                        os.path.splitext(template_filename)[0], _template_file.read()
+                        os.path.basename(os.path.splitext(template_filename)[0]),
+                        _template_file.read(),
                     )
 
     # crazyhusk.plugin.validators

@@ -1,4 +1,5 @@
 """Wrapper objects for Unreal code templates."""
+
 # Standard Library
 import copy
 import re

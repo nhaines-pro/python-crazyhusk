@@ -1,5 +1,7 @@
 """Object wrappers for Unreal projects."""
+
 # Standard Library
+import glob
 import json
 import os
 from copy import deepcopy
@@ -8,6 +10,7 @@ from copy import deepcopy
 import pkg_resources
 
 # CrazyHusk
+from crazyhusk.code import CodeTemplate
 from crazyhusk.config import CONFIG_CATEGORIES, UnrealConfigParser
 from crazyhusk.engine import UnrealEngine
 from crazyhusk.module import ModuleDescriptor
@@ -89,10 +92,32 @@ class UnrealProject(object):
         self.__engine = None
         self.__modules = None
         self.__plugins = None
+        self.__code_templates = None
 
     def __repr__(self):
         """Python interpreter representation."""
         return f"<UnrealProject {self.name} at {self.project_file}>"
+
+    @property
+    def code_templates(self):
+        if self.__code_templates is None:
+            self.__code_templates = {}
+            if self.engine is None:
+                items = (self, *self.plugins.values())
+            else:
+                items = (
+                    self.engine,
+                    self.engine.plugins.values(),
+                    self,
+                    *self.plugins.values(),
+                )
+            for entry_point in pkg_resources.iter_entry_points(
+                "crazyhusk.code.listers"
+            ):
+                for item in items:
+                    for template in entry_point.load()(item):
+                        self.__code_templates[template.name] = template
+        return self.__code_templates
 
     @property
     def descriptor(self):
@@ -177,6 +202,22 @@ class UnrealProject(object):
     def saved_dir(self):
         """Get the project's Saved directory."""
         return os.path.join(self.project_dir, "Saved")
+
+    # crazyhusk.code.listers
+    @staticmethod
+    def list_project_code_templates(project):
+        if isinstance(project, UnrealProject):
+            for template_filename in glob.iglob(
+                os.path.join(project.content_dir, "Editor", "Templates", "*.template")
+            ):
+                with open(
+                    template_filename,
+                    encoding="utf-8",
+                ) as _template_file:
+                    yield CodeTemplate(
+                        os.path.basename(os.path.splitext(template_filename)[0]),
+                        _template_file.read(),
+                    )
 
     # crazyhusk.project.validators
     @staticmethod

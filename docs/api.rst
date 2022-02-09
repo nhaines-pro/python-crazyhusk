@@ -12,6 +12,12 @@ CLI
 .. automodule:: crazyhusk.cli
     :members:
 
+Code Templates
+----------
+
+.. automodule:: crazyhusk.code
+    :members:
+
 Config
 ----------
 

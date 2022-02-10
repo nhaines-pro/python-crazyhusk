@@ -11,6 +11,16 @@ import pkg_resources
 
 def set_subcommand_arguments(parser, command):
     """Dynamically set argparse.Parser subcommand arguments by inspecting a callable function."""
+    if not isinstance(parser, argparse.ArgumentParser):
+        raise TypeError(
+            f"Parser provided must be of type argparse.ArgumentParser. Got: {parser!r}"
+        )
+
+    if not inspect.isfunction(command):
+        raise TypeError(
+            f"Command provided must be a callable function. Got:{command!r}"
+        )
+
     fullargs = inspect.getfullargspec(command)
 
     if fullargs.defaults:

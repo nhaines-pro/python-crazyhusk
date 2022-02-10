@@ -3,7 +3,7 @@ requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
-write_to = "crazyhusk/_version.py"
+write_to = "crazyhusk/__version__.py"
 
 [tool.isort]
 profile = "black"
@@ -13,3 +13,11 @@ import_heading_future = "Future Standard Library"
 import_heading_stdlib = "Standard Library"
 import_heading_thirdparty = "Third Party"
 import_heading_firstparty = "CrazyHusk"
+
+[tool.coverage.run]
+branch = true
+source = ["crazyhusk"]
+omit = ["*/tests/*"]
+
+[tool.coverage.paths]
+source = ["crazyhusk"]

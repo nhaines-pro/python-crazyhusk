@@ -10,7 +10,7 @@ RE_UE4_LOG_LINE = re.compile(
     r"\[(?P<timestamp>[\d.:\-]+)\]\[.+\](?P<module>\w+): ?((?P<level>(Display)|(Info)|(Warning)|(Error)): ?)?(?P<message>.+)$"
 )
 RE_UBT_LOG_LINE = re.compile(
-    r"^(?P<filename>.+?)\((?P<linenumber>\d+),?(?P<colnumber>\d+?)\)\s?\:\s?(((?P<level>error|warning) \w+)|note)\:\s(?P<message>.+?)$"
+    r"^(?P<filename>.+?)\((?P<linenumber>\d+),?(?P<colnumber>\d+?)?\)\s?\:\s?(((?P<level>error|warning) \w+)|note)\:\s(?P<message>.+?)$"
 )
 
 UE4_LOG_MAP = {

@@ -5,7 +5,6 @@ import json
 import logging
 import os
 import platform
-import winreg
 
 # CrazyHusk
 from crazyhusk.engine import UnrealEngine
@@ -37,12 +36,15 @@ def find_registered_engines_windows(association):
         return
 
     try:
+        # Standard Library
+        import winreg
+
         with winreg.OpenKey(
             winreg.HKEY_CURRENT_USER, r"Software\Epic Games\Unreal Engine\Builds"
         ) as key:
             base_dir, _ = winreg.QueryValueEx(key, association)
             return UnrealEngine(os.path.join(base_dir, "Engine"), association)
-    except WindowsError:
+    except OSError:
         return
 
 
@@ -72,6 +74,9 @@ def list_registered_engines_windows():
 
     logging.info("Gathering Windows Registry installations...")
     try:
+        # Standard Library
+        import winreg
+
         with winreg.OpenKey(
             winreg.HKEY_CURRENT_USER, r"Software\Epic Games\Unreal Engine\Builds"
         ) as key:

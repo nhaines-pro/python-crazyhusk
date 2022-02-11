@@ -149,7 +149,7 @@ def test_filter_ubt_warnings(
             "[2021.11.29-21.06.49:745][  0]LogConfig: Setting CVar [[r.BloomQuality:5]]",
             logging.INFO,
             "INFO",
-            1638248809.0,
+            1638220009,
             "LogConfig",
             "Setting CVar [[r.BloomQuality:5]]",
         ),

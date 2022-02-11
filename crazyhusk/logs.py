@@ -1,8 +1,8 @@
 """Logging utilities for crazyhusk Unreal Engine object wrappers."""
 # Standard Library
+import calendar
 import logging
 import re
-import time
 from datetime import datetime
 
 # Regular expression for capturing data from UE4 logs
@@ -64,7 +64,7 @@ class FilterUE4Logs(logging.Filter):
         if captured is not None:
             record.levelno = UE4_LOG_MAP.get(captured.group("level"), logging.INFO)
             record.levelname = logging.getLevelName(record.levelno)
-            record.created = time.mktime(
+            record.created = calendar.timegm(
                 datetime.strptime(
                     captured.group("timestamp"), "%Y.%m.%d-%H.%M.%S:%f"
                 ).timetuple()

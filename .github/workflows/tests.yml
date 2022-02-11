@@ -1,20 +1,8 @@
 name: Tests
 
 on:
-  push:
-    branches:
-      - main
-    tags:
-      - '!*'
-    paths:
-      - 'crazyhusk/*'
-      - 'pyproject.toml'
-      - 'setup.cfg'
-  pull_request:
-    paths:
-      - '!*.MD'
-      - '!LICENSE'
-      - '!docs/*'
+  - push
+  - pull_request
 
 jobs:
   test:

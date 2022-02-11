@@ -10,7 +10,7 @@ class CodeTemplateError(Exception):
 
 
 class CodeTemplate(object):
-    TOKEN_RE = re.compile(r".*\%([A-Z_]+)\%.*")
+    TOKEN_RE = re.compile(r"\%([A-Z_]+)\%", flags=re.MULTILINE)
 
     def __init__(self, name, template_string=""):
         self.name = name
@@ -37,6 +37,6 @@ class CodeTemplate(object):
 
         result = copy.copy(self.template_string)
         for token, value in tokens.items():
-            result = re.sub(f"\%{token}\%", value, result)
+            result = re.sub(r"\%{}\%".format(token), value, result)
 
         return result

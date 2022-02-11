@@ -9,11 +9,13 @@ from crazyhusk import module
 def null_module_descriptor():
     yield module.ModuleDescriptor()
 
+
 @pytest.fixture(scope="function")
 def empty_module_descriptor():
     descriptor = module.ModuleDescriptor()
     descriptor.name = ""
     yield descriptor
+
 
 @pytest.fixture(scope="function")
 def invalid_hosttype_module_descriptor():
@@ -22,6 +24,7 @@ def invalid_hosttype_module_descriptor():
     descriptor.host_type = "Invalid"
     yield descriptor
 
+
 @pytest.fixture(scope="function")
 def invalid_loadingphase_module_descriptor():
     descriptor = module.ModuleDescriptor()
@@ -29,6 +32,7 @@ def invalid_loadingphase_module_descriptor():
     descriptor.host_type = "Runtime"
     descriptor.loading_phase = "Invalid"
     yield descriptor
+
 
 @pytest.fixture(scope="function")
 def default_valid_module_descriptor():
@@ -53,15 +57,19 @@ def test_module_descriptor_init(null_module_descriptor):
     assert null_module_descriptor.whitelist_target_configurations == []
     assert null_module_descriptor.whitelist_targets == []
 
+
 def test_module_descriptor_repr(null_module_descriptor):
     assert repr(null_module_descriptor) == "<ModuleDescriptor None>"
+
 
 def test_module_descriptor_hash(null_module_descriptor):
     assert hash(null_module_descriptor) == hash(None)
 
+
 def test_module_descriptor_equality(null_module_descriptor, empty_module_descriptor):
     assert null_module_descriptor == null_module_descriptor
     assert null_module_descriptor != empty_module_descriptor
+
 
 @pytest.mark.parametrize(
     "module_descriptor,expected",
@@ -70,12 +78,13 @@ def test_module_descriptor_equality(null_module_descriptor, empty_module_descrip
         ("empty_module_descriptor", False),
         ("invalid_hosttype_module_descriptor", False),
         ("invalid_loadingphase_module_descriptor", False),
-        ("default_valid_module_descriptor", True)
+        ("default_valid_module_descriptor", True),
     ],
 )
 def test_module_descriptor_is_valid(module_descriptor, expected, request):
     module_descriptor = request.getfixturevalue(module_descriptor)
     assert module_descriptor.is_valid() is expected
+
 
 @pytest.mark.parametrize(
     "module_descriptor,expected_type",
@@ -84,7 +93,7 @@ def test_module_descriptor_is_valid(module_descriptor, expected, request):
         ("empty_module_descriptor", dict),
         ("invalid_hosttype_module_descriptor", dict),
         ("invalid_loadingphase_module_descriptor", dict),
-        ("default_valid_module_descriptor", module.ModuleDescriptor)
+        ("default_valid_module_descriptor", module.ModuleDescriptor),
     ],
 )
 def test_module_descriptor_to_object(module_descriptor, expected_type, request):

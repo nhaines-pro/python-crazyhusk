@@ -38,9 +38,20 @@ class UnrealVersion(object):
         self.changelist = 0
         self.branch = ""
 
+    def __repr__(self):
+        """Python interpreter representation of this instance."""
+        return f"<UnrealVersion {self}>"
+
     def __str__(self):
         """Represent this instance as a string."""
-        return f"{self.major}.{self.minor}.{self.patch}-{self.changelist}+{self.branch}"
+        result = f"{self.major}.{self.minor}"
+        if self.patch:
+            result += f".{self.patch}"
+        if self.changelist:
+            result += f"-{self.changelist}"
+        if self.branch != "":
+            result += f"+{self.branch}"
+        return result
 
     def __lt__(self, other):
         if not (isinstance(self, UnrealVersion) and isinstance(other, UnrealVersion)):

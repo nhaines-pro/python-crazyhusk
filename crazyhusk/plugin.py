@@ -64,7 +64,10 @@ class PluginDescriptor(object):
     @property
     def modules(self):
         for module in self.__modules:
-            yield ModuleDescriptor.to_object(module)
+            if isinstance(module, dict):
+                yield ModuleDescriptor.to_object(module)
+            else:
+                yield module
 
     @property
     def plugins(self):
@@ -108,6 +111,39 @@ class PluginDescriptor(object):
             return descriptor
         return dct
 
+    def to_dict(self):
+        return {
+            "CanContainContent": self.can_contain_content,
+            "ExplicitlyLoaded": self.explicitly_loaded,
+            "Installed": self.installed,
+            "IsBetaVersion": self.is_beta_version,
+            "IsExperimentalVersion": self.is_experimental_version,
+            "IsHidden": self.is_hidden,
+            "IsPluginExtension": self.is_plugin_extension,
+            "RequiresBuildPlatform": self.requires_build_platform,
+            "Category": self.category,
+            "CreatedBy": self.created_by,
+            "CreatedByURL": self.created_by_url,
+            "Description": self.description,
+            "DocsURL": self.docs_url,
+            "EditorCustomVirtualPath": self.editor_custom_virtual_path,
+            "EnabledByDefault": self.enabled_by_default,
+            "EngineVersion": self.engine_version,
+            "FriendlyName": self.friendly_name,
+            "LocalizationTargets": self.localization_targets,
+            "MarketplaceURL": self.marketplace_url,
+            "Modules": list(self.modules),
+            "ParentPluginName": self.parent_plugin_name,
+            "Plugins": list(self.plugins),
+            "PostBuildSteps": self.post_build_steps,
+            "PreBuildSteps": self.pre_build_steps,
+            "SupportedPrograms": self.supported_programs,
+            "SupportedTargetPlatforms": self.supported_target_platforms,
+            "SupportURL": self.support_url,
+            "Version": self.version,
+            "VersionName": self.version_name,
+        }
+
     def is_valid(self):
         return (
             self.friendly_name is not None
@@ -115,6 +151,11 @@ class PluginDescriptor(object):
             and self.version_name is not None
             and self.version_name != ""
         )
+
+    def add_module(self, module):
+        if not isinstance(module, ModuleDescriptor):
+            return NotImplemented
+        self.__modules.append(module)
 
 
 class PluginReferenceDescriptor(object):

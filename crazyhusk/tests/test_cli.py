@@ -1,5 +1,6 @@
 # Standard Library
 import argparse
+import inspect
 
 # Third Party
 import pytest
@@ -90,3 +91,21 @@ def test_set_subcommand_arguments_types():
         ),
         argparse.ArgumentParser,
     )
+
+@pytest.mark.parametrize(
+    "args,raises",
+    [
+        (None, cli.CommandError),
+        ([], cli.CommandError),
+        (['list-engines'], None), # TODO: monkeypatch pkg_resources behavior
+    ],
+)
+def test_parse_cli_args(args, raises):
+    if raises is not None:
+        with pytest.raises(raises):
+            cli.parse_cli_args(args)
+    else:
+        args = cli.parse_cli_args(args)
+        assert isinstance(args, argparse.Namespace)
+        assert "command" in args
+        assert inspect.isfunction(args.command)

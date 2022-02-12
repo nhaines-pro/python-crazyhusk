@@ -9,6 +9,10 @@ import sys
 import pkg_resources
 
 
+class CommandError(Exception):
+    """Custom exception representing errors encountered with CLI."""
+
+
 def set_subcommand_arguments(parser, command):
     """Dynamically set argparse.Parser subcommand arguments by inspecting a callable function."""
     if not isinstance(parser, argparse.ArgumentParser):
@@ -51,9 +55,12 @@ def set_subcommand_arguments(parser, command):
     return parser
 
 
-def run():
-    """Run the crazyhusk CLI entrypoint."""
-    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+def parse_cli_args(args):
+    """Parse crazyhusk CLI arguments."""
+    if args is None:
+        raise CommandError("None is not parsable arguments.")
+    elif len(args) == 0:
+        raise CommandError("Must provide at least one argument.")
 
     parser = argparse.ArgumentParser()
     commands_parser = parser.add_subparsers(
@@ -67,6 +74,12 @@ def run():
             cmd_parser.set_defaults(command=command)
             set_subcommand_arguments(cmd_parser, command)
 
-    args = parser.parse_args()
-    if "command" in args:
-        args.command(**{k: v for k, v in args.__dict__.items() if k != "command"})
+    return parser.parse_args(args)
+
+def run(args=sys.argv[1:]):
+    """Run the crazyhusk CLI entrypoint."""
+    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+
+    command_args = parse_cli_args(sys.argv[1:])
+    if "command" in command_args:
+        command_args.command(**{k: v for k, v in command_args.__dict__.items() if k != "command"})

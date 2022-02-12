@@ -36,6 +36,9 @@ class UnrealVersion(object):
         self.minor = 0
         self.patch = 0
         self.changelist = 0
+        self.compatible_changelist = 0
+        self.is_licensee_version = 0
+        self.is_promoted_version = 1
         self.branch = ""
 
     def __repr__(self):
@@ -53,8 +56,19 @@ class UnrealVersion(object):
             result += f"+{self.branch}"
         return result
 
+    def __eq__(self, other):
+        if not isinstance(other, UnrealVersion):
+            return NotImplemented
+        return (
+            self.major == other.major
+            and self.minor == other.minor
+            and self.patch == other.patch
+            and self.changelist == other.changelist
+            and self.branch == other.branch
+        )
+
     def __lt__(self, other):
-        if not (isinstance(self, UnrealVersion) and isinstance(other, UnrealVersion)):
+        if not isinstance(other, UnrealVersion):
             return NotImplemented
         if self.major < other.major:
             return True
@@ -75,7 +89,22 @@ class UnrealVersion(object):
         version.patch = dct.get("PatchVersion", 0)
         version.changelist = dct.get("Changelist", 0)
         version.branch = dct.get("BranchName", "")
+        version.compatible_changelist = dct.get("CompatibleChangelist", 0)
+        version.is_licensee_version = dct.get("IsLicenseeVersion", 0)
+        version.is_promoted_version = dct.get("IsPromotedBuild", 1)
         return version
+
+    def to_dict(self):
+        return {
+            "MajorVersion": self.major,
+            "MinorVersion": self.minor,
+            "PatchVersion": self.patch,
+            "Changelist": self.changelist,
+            "BranchName": self.branch,
+            "CompatibleChangelist": self.compatible_changelist,
+            "IsLicenseeVersion": self.is_licensee_version,
+            "IsPromotedBuild": self.is_promoted_version,
+        }
 
 
 class UnrealEngine(object):
@@ -103,7 +132,7 @@ class UnrealEngine(object):
         )
 
     def __lt__(self, other):
-        if not (isinstance(self, UnrealEngine) and isinstance(other, UnrealEngine)):
+        if not isinstance(other, UnrealEngine):
             return NotImplemented
         return self.version < other.version
 
@@ -199,7 +228,9 @@ class UnrealEngine(object):
     @property
     def version(self):
         """Engine version, as UnrealVersion."""
-        if self.__version is None:
+        if self.__version is None and os.path.isfile(
+            os.path.join(self.build_dir, "Build.version")
+        ):
             with open(
                 os.path.join(self.build_dir, "Build.version"), encoding="utf-8"
             ) as json_version_file:

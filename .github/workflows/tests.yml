@@ -33,6 +33,7 @@ jobs:
         with:
           name: code-coverage-report-${{ matrix.python-version }}-${{ matrix.os }}
           path: .coverage.${{ matrix.python-version }}.${{ matrix.os }}
+          retention-days: 7
 
   coverage:
     name: coverage

@@ -1,4 +1,5 @@
 # Standard Library
+import os
 import types
 
 # Third Party
@@ -222,3 +223,183 @@ def test_plugin_descriptor_to_object(plugin_descriptor, expected_type, request):
     plugin_descriptor = request.getfixturevalue(plugin_descriptor)
     dct = plugin_descriptor.to_dict()
     assert isinstance(plugin.PluginReferenceDescriptor.to_object(dct), expected_type)
+
+
+# UnrealPlugin tests
+@pytest.fixture(scope="function")
+def empty_unreal_plugin():
+    yield plugin.UnrealPlugin("")
+
+
+@pytest.fixture(scope="function")
+def local_dir_unreal_plugin():
+    yield plugin.UnrealPlugin(".")
+
+
+@pytest.fixture(scope="function")
+def invalid_file_unreal_plugin():
+    yield plugin.UnrealPlugin("./test.txt")
+
+
+@pytest.fixture(scope="function")
+def invalid_file_unreal_plugin_realpath():
+    yield plugin.UnrealPlugin(os.path.realpath("./test.txt"))
+
+
+@pytest.fixture(scope="function")
+def empty_file_content_unreal_plugin(tmp_path):
+    plugin_file = tmp_path / "Invalid.uplugin"
+    plugin_file.write_text("")
+    yield plugin.UnrealPlugin(plugin_file)
+
+
+@pytest.mark.parametrize(
+    "plugin_file,raises",
+    [(None, TypeError), ("", None)],
+)
+def test_unreal_plugin_init(plugin_file, raises):
+    if raises is not None:
+        with pytest.raises(raises):
+            assert plugin.UnrealPlugin(plugin_file)
+    else:
+        _plugin = plugin.UnrealPlugin(plugin_file)
+        assert _plugin.plugin_file == plugin_file
+
+
+def test_unreal_plugin_repr(empty_unreal_plugin):
+    assert repr(empty_unreal_plugin) == "<UnrealPlugin at >"
+
+
+@pytest.mark.parametrize(
+    "unreal_plugin,plugin_dir,name,config_dir,content_dir",
+    [
+        ("empty_unreal_plugin", "", "", "Config", "Content"),
+        ("local_dir_unreal_plugin", "", ".", "Config", "Content"),
+        (
+            "invalid_file_unreal_plugin",
+            ".",
+            "test",
+            os.path.join(".", "Config"),
+            os.path.join(".", "Content"),
+        ),
+    ],
+)
+def test_unreal_plugin_properties(
+    unreal_plugin, plugin_dir, name, config_dir, content_dir, request
+):
+    unreal_plugin = request.getfixturevalue(unreal_plugin)
+    assert unreal_plugin.plugin_dir == plugin_dir
+    assert unreal_plugin.name == name
+    assert unreal_plugin.config_dir == config_dir
+    assert unreal_plugin.content_dir == content_dir
+
+
+@pytest.mark.parametrize(
+    "unreal_plugin,raises",
+    [
+        ("empty_unreal_plugin", plugin.UnrealPluginError),
+        ("local_dir_unreal_plugin", plugin.UnrealPluginError),
+        ("invalid_file_unreal_plugin", plugin.UnrealPluginError),
+        ("empty_file_content_unreal_plugin", None),
+    ],
+)
+def test_unreal_plugin_file_exists(unreal_plugin, raises, request):
+    unreal_plugin = request.getfixturevalue(unreal_plugin)
+    if raises:
+        with pytest.raises(raises):
+            assert plugin.UnrealPlugin.plugin_file_exists(unreal_plugin) is None
+    else:
+        assert plugin.UnrealPlugin.plugin_file_exists(unreal_plugin) is None
+
+
+def test_unreal_plugin_file_exists_types():
+    with pytest.raises(TypeError):
+        assert plugin.UnrealPlugin.plugin_file_exists(None)
+
+
+@pytest.mark.parametrize(
+    "unreal_plugin,raises",
+    [
+        ("empty_unreal_plugin", plugin.UnrealPluginError),
+        ("local_dir_unreal_plugin", plugin.UnrealPluginError),
+        ("invalid_file_unreal_plugin", plugin.UnrealPluginError),
+        ("empty_file_content_unreal_plugin", None),
+    ],
+)
+def test_unreal_plugin_file_extension(unreal_plugin, raises, request):
+    unreal_plugin = request.getfixturevalue(unreal_plugin)
+    if raises:
+        with pytest.raises(raises):
+            assert (
+                plugin.UnrealPlugin.valid_plugin_file_extension(unreal_plugin) is None
+            )
+    else:
+        assert plugin.UnrealPlugin.valid_plugin_file_extension(unreal_plugin) is None
+
+
+def test_unreal_plugin_file_extension_types():
+    with pytest.raises(TypeError):
+        assert plugin.UnrealPlugin.valid_plugin_file_extension(None)
+
+
+@pytest.mark.parametrize(
+    "unreal_path,raises,expected",
+    [
+        ("", plugin.UnrealPluginError, None),
+        ("/", plugin.UnrealPluginError, None),
+        ("/Game", plugin.UnrealPluginError, None),
+        ("/Game/whatever", plugin.UnrealPluginError, None),
+        ("/Engine", plugin.UnrealPluginError, None),
+        ("/Engine/whatever", plugin.UnrealPluginError, None),
+        ("/Invalid", plugin.UnrealPluginError, None),
+        ("/Invalid/whatever", None, None),
+        ("/test", plugin.UnrealPluginError, None),
+        ("/test/whatever", None, os.path.join(".", "Content", "whatever.uasset")),
+    ],
+)
+def test_unreal_path_to_file_path(
+    unreal_path, raises, expected, invalid_file_unreal_plugin
+):
+    if raises:
+        with pytest.raises(raises):
+            assert (
+                invalid_file_unreal_plugin.unreal_path_to_file_path(unreal_path)
+                == expected
+            )
+    else:
+        assert (
+            invalid_file_unreal_plugin.unreal_path_to_file_path(unreal_path) == expected
+        )
+
+
+@pytest.mark.parametrize(
+    "file_path,raises,expected",
+    [
+        ("", None, None),
+        ("/", None, None),
+        (".", None, None),
+        (os.path.realpath("."), None, None),
+        (os.path.realpath("./Content"), None, "/test/"),
+        (
+            os.path.realpath(os.path.join(".", "Content", "whatever.uasset")),
+            None,
+            "/test/whatever",
+        ),
+    ],
+)
+def test_unreal_path_from_file_path(
+    file_path, raises, expected, invalid_file_unreal_plugin_realpath
+):
+    if raises:
+        with pytest.raises(raises):
+            assert (
+                invalid_file_unreal_plugin_realpath.unreal_path_from_file_path(
+                    file_path
+                )
+                == expected
+            )
+    else:
+        assert (
+            invalid_file_unreal_plugin_realpath.unreal_path_from_file_path(file_path)
+            == expected
+        )

@@ -21,6 +21,3 @@ omit = ["*/tests/*"]
 
 [tool.coverage.paths]
 source = ["crazyhusk"]
-
-[tool.pytest.ini_options]
-addopts = "--cov"

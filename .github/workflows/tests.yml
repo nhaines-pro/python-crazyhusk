@@ -9,7 +9,7 @@ jobs:
     name: Run PyTest
     runs-on: ${{ matrix.os }}
     env:
-      COVERAGE_FILE: .coverage.${{ matrix.python-version }}.${{ matrix.os }}
+      COVERAGE_FILE: .coverage.${{ matrix.os }}.${{ matrix.python-version }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
@@ -26,7 +26,7 @@ jobs:
       - name: Install Dependencies
         run: python -m pip install --upgrade pip pytest coverage[toml]
       - name: Test with Pytest
-        run: coverage run -m pytest
+        run: coverage run -m pytest --context=${{ matrix.os }}.${{ matrix.python-version }}
       - name: Archive code coverage results
         uses: actions/upload-artifact@v2
         with:

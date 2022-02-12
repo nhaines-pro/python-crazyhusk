@@ -92,12 +92,13 @@ def test_set_subcommand_arguments_types():
         argparse.ArgumentParser,
     )
 
+
 @pytest.mark.parametrize(
     "args,raises",
     [
         (None, cli.CommandError),
         ([], cli.CommandError),
-        (['list-engines'], None), # TODO: monkeypatch pkg_resources behavior
+        (["list-engines"], None),  # TODO: monkeypatch pkg_resources behavior
     ],
 )
 def test_parse_cli_args(args, raises):

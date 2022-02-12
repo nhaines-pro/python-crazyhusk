@@ -76,10 +76,13 @@ def parse_cli_args(args):
 
     return parser.parse_args(args)
 
+
 def run(args=sys.argv[1:]):
     """Run the crazyhusk CLI entrypoint."""
     logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
     command_args = parse_cli_args(sys.argv[1:])
     if "command" in command_args:
-        command_args.command(**{k: v for k, v in command_args.__dict__.items() if k != "command"})
+        command_args.command(
+            **{k: v for k, v in command_args.__dict__.items() if k != "command"}
+        )

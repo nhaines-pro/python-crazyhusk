@@ -98,17 +98,5 @@ def test_module_descriptor_is_valid(module_descriptor, expected, request):
 )
 def test_module_descriptor_to_object(module_descriptor, expected_type, request):
     module_descriptor = request.getfixturevalue(module_descriptor)
-    dct = {
-        "Name": module_descriptor.name,
-        "Type": module_descriptor.host_type,
-        "LoadingPhase": module_descriptor.loading_phase,
-        "BlacklistPlatforms": module_descriptor.blacklist_platforms,
-        "BlacklistPrograms": module_descriptor.blacklist_programs,
-        "BlacklistTargetConfigurations": module_descriptor.blacklist_target_configurations,
-        "BlacklistTargets": module_descriptor.blacklist_targets,
-        "WhitelistPlatforms": module_descriptor.whitelist_platforms,
-        "WhitelistPrograms": module_descriptor.whitelist_programs,
-        "WhitelistTargetConfigurations": module_descriptor.whitelist_target_configurations,
-        "WhitelistTargets": module_descriptor.whitelist_targets,
-    }
+    dct = module_descriptor.to_dict()
     assert isinstance(module.ModuleDescriptor.to_object(dct), expected_type)

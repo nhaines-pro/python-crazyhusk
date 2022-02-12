@@ -97,6 +97,21 @@ class ModuleDescriptor(object):
             return descriptor
         return dct
 
+    def to_dict(self):
+        return {
+            "Name": self.name,
+            "Type": self.host_type,
+            "LoadingPhase": self.loading_phase,
+            "BlacklistPlatforms": self.blacklist_platforms,
+            "BlacklistPrograms": self.blacklist_programs,
+            "BlacklistTargetConfigurations": self.blacklist_target_configurations,
+            "BlacklistTargets": self.blacklist_targets,
+            "WhitelistPlatforms": self.whitelist_platforms,
+            "WhitelistPrograms": self.whitelist_programs,
+            "WhitelistTargetConfigurations": self.whitelist_target_configurations,
+            "WhitelistTargets": self.whitelist_targets,
+        }
+
     def is_valid(self):
         return (
             self.name is not None

@@ -98,7 +98,7 @@ def test_set_subcommand_arguments_types():
     [
         (None, cli.CommandError),
         ([], cli.CommandError),
-        (["list-engines"], None),  # TODO: monkeypatch pkg_resources behavior
+        # TODO: monkeypatch pkg_resources behavior
     ],
 )
 def test_parse_cli_args(args, raises):

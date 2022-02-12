@@ -207,6 +207,22 @@ class PluginReferenceDescriptor(object):
             return ref
         return dct
 
+    def to_dict(self):
+        return {
+            "Enabled": self.enabled,
+            "BlacklistPlatforms": self.blacklist_platforms,
+            "BlacklistTargetConfigurations": self.blacklist_target_configurations,
+            "BlacklistTargets": self.blacklist_targets,
+            "Optional": self.optional,
+            "Description": self.description,
+            "MarketplaceURL": self.marketplace_url,
+            "Name": self.name,
+            "SupportedTargetPlatforms": self.supported_target_platforms,
+            "WhitelistPlatforms": self.whitelist_platforms,
+            "WhitelistTargetConfigurations": self.whitelist_target_configurations,
+            "WhitelistTargets": self.whitelist_targets,
+        }
+
     def is_valid(self):
         return self.name is not None and self.name != ""
 

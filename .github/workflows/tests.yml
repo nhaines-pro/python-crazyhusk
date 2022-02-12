@@ -45,21 +45,21 @@ jobs:
       - uses: actions/checkout@v2
         with: 
           fetch-depth: 0
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
-    - name: Install Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install coverage
-    - name: Download all workflow run artifacts
-      uses: actions/download-artifact@v2
-      with:
-          name: coverage-data
-    - name: Create combined coverage report
-      run: |
-        python -m coverage combine
-        python -m coverage xml
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v2
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install coverage
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v2
+        with:
+            name: coverage-data
+      - name: Create combined coverage report
+        run: |
+          python -m coverage combine
+          python -m coverage xml
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2

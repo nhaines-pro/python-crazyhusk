@@ -20,4 +20,4 @@ source = ["crazyhusk"]
 omit = ["*/tests/*"]
 
 [tool.coverage.paths]
-source = ["crazyhusk"]
+source = ["./crazyhusk"]

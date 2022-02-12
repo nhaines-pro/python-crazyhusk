@@ -156,3 +156,61 @@ def test_plugin_descriptor_add_module(
 ):
     assert basic_plugin_descriptor.add_module({}) is NotImplemented
     assert basic_plugin_descriptor.add_module(default_valid_module_descriptor) is None
+
+
+# PluginReferenceDescriptor tests
+
+@pytest.fixture(scope="function")
+def null_plugin_reference_descriptor():
+    yield plugin.PluginReferenceDescriptor()
+
+@pytest.fixture(scope="function")
+def empty_plugin_reference_descriptor():
+    ref = plugin.PluginReferenceDescriptor()
+    ref.name = ""
+    yield ref
+
+@pytest.fixture(scope="function")
+def basic_plugin_reference_descriptor():
+    ref = plugin.PluginReferenceDescriptor()
+    ref.name = "Basic"
+    yield ref
+
+
+def test_plugin_reference_descriptor_init(null_plugin_reference_descriptor):
+    assert not null_plugin_reference_descriptor.enabled
+    assert isinstance(null_plugin_reference_descriptor.blacklist_platforms, list)
+    assert len(null_plugin_reference_descriptor.blacklist_platforms) == 0
+    assert isinstance(null_plugin_reference_descriptor.blacklist_target_configurations, list)
+    assert len(null_plugin_reference_descriptor.blacklist_target_configurations) == 0
+    assert isinstance(null_plugin_reference_descriptor.blacklist_targets, list)
+    assert len(null_plugin_reference_descriptor.blacklist_targets) == 0
+    assert not null_plugin_reference_descriptor.optional
+    assert null_plugin_reference_descriptor.description == ""
+    assert null_plugin_reference_descriptor.marketplace_url == ""
+    assert null_plugin_reference_descriptor.name is None
+    assert isinstance(null_plugin_reference_descriptor.supported_target_platforms, list)
+    assert len(null_plugin_reference_descriptor.supported_target_platforms) == 0
+    assert isinstance(null_plugin_reference_descriptor.whitelist_platforms, list)
+    assert len(null_plugin_reference_descriptor.whitelist_platforms) == 0
+    assert isinstance(null_plugin_reference_descriptor.whitelist_target_configurations, list)
+    assert len(null_plugin_reference_descriptor.whitelist_target_configurations) == 0
+    assert isinstance(null_plugin_reference_descriptor.whitelist_targets, list)
+    assert len(null_plugin_reference_descriptor.whitelist_targets) == 0
+
+def test_plugin_reference_descriptor_repr(null_plugin_reference_descriptor):
+    assert repr(null_plugin_reference_descriptor) == "<PluginReferenceDescriptor None>"
+
+
+@pytest.mark.parametrize(
+    "plugin_descriptor,expected_type",
+    [
+        ("null_plugin_reference_descriptor", dict),
+        ("empty_plugin_reference_descriptor", dict),
+        ("basic_plugin_reference_descriptor", plugin.PluginReferenceDescriptor)
+    ],
+)
+def test_plugin_descriptor_to_object(plugin_descriptor, expected_type, request):
+    plugin_descriptor = request.getfixturevalue(plugin_descriptor)
+    dct = plugin_descriptor.to_dict()
+    assert isinstance(plugin.PluginReferenceDescriptor.to_object(dct), expected_type)

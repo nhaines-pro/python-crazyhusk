@@ -50,6 +50,8 @@ jobs:
         pip install coverage
     - name: Download all workflow run artifacts
       uses: actions/download-artifact@v2
+      with:
+        path: .
     - name: Create combined coverage report
       run: |
         coverage combine

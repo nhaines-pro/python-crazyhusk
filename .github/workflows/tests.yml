@@ -7,6 +7,8 @@ on:
 jobs:
   test:
     runs-on: ${{ matrix.os }}
+    env:
+      COVERAGE_FILE: .coverage.${{ matrix.python-version }}.${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
@@ -26,6 +28,11 @@ jobs:
           pip install .[test]
       - name: Test with Pytest
         run: pytest
+      - name: Archive code coverage results
+        uses: actions/upload-artifact@v2
+        with:
+          name: code-coverage-report-${{ matrix.python-version }}-${{ matrix.os }}
+          path: .coverage.${{ matrix.python-version }}.${{ matrix.os }}
 
   coverage:
     name: coverage

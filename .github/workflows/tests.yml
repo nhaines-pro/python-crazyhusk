@@ -53,11 +53,11 @@ jobs:
         uses: actions/download-artifact@v2
         with:
             name: coverage-data
-      - name: Fixup coverage db source paths
-        run: python ./ci/fix_win_coverage_paths.py
+      # - name: Fixup coverage db source paths
+      #   run: python ./ci/fix_win_coverage_paths.py
       - name: Create combined coverage file
         run: python -m coverage combine
       - name: Create coverage XML report
-        run: python -m coverage xml -i
+        run: python -m coverage xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2

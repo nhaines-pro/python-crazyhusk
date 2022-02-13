@@ -309,13 +309,9 @@ def test_unreal_engine_build_type(unreal_engine,expected,request):
 @pytest.mark.parametrize(
     "unreal_engine,executable,raises",
     [
-        ("engine_empty", "", ValueError),
-        ("engine_empty_version_egl_4_26_2", "", ValueError),
-        ("engine_empty_version_empty", "", ValueError),
         ("engine_local", None, TypeError),
         ("engine_local", ".", None),
         ("engine_local", "/bin/scary_dir/important_exe", engine.UnrealExecutionError),
-        ("engine_local", r"C:\Windows\scaryfile.exe", ValueError),
         ("engine_local", os.path.realpath(".."), engine.UnrealExecutionError),
     ],
 )

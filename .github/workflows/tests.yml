@@ -37,7 +37,7 @@ jobs:
 
   coverage:
     name: Combine Coverage Report
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: test
     steps:
       - uses: actions/checkout@v2
@@ -53,8 +53,8 @@ jobs:
         uses: actions/download-artifact@v2
         with:
             name: coverage-data
-      # - name: Fixup coverage db source paths
-      #   run: python ./ci/fix_win_coverage_paths.py
+      - name: Fixup coverage db source paths
+        run: python ./ci/fix_win_coverage_paths.py
       - name: Create combined coverage file
         run: python -m coverage combine
       - name: Create coverage XML report

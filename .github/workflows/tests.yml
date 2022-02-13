@@ -24,7 +24,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install Dependencies
-        run: python -m pip install --upgrade pip pytest coverage[toml]
+        run: python -m pip install --upgrade pip pytest coverage[toml] pytest-cov .
       - name: Test with Pytest
         run: coverage run --context=${{ matrix.os }}.${{ matrix.python-version }} -m pytest
       - name: Archive code coverage results

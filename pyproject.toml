@@ -3,7 +3,7 @@ requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
-write_to = "crazyhusk/__version__.py"
+write_to = "src/crazyhusk/__version__.py"
 
 [tool.isort]
 profile = "black"
@@ -20,4 +20,8 @@ source = ["crazyhusk"]
 omit = ["*/tests/*"]
 
 [tool.coverage.paths]
-source = ["crazyhusk"]
+source = ["src", "*/site-packages"]
+tests = ["tests", "*/tests"]
+
+[tool.coverage.report]
+show_missing = true

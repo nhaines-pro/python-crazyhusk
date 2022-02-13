@@ -1,6 +1,7 @@
-from contextlib import closing
+# Standard Library
 import glob
 import sqlite3
+from contextlib import closing
 
 
 def main():

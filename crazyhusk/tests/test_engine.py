@@ -253,6 +253,7 @@ def test_unreal_engine_repr(engine_empty):
 
 def test_unreal_engine_lt_types(engine_empty, engine_empty_version_empty):
     with pytest.raises(TypeError):
+        assert engine_empty < None
         assert engine_empty < engine_empty_version_empty
 
 

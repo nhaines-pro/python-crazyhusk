@@ -18,7 +18,6 @@ import_heading_firstparty = "CrazyHusk"
 branch = true
 source = ["crazyhusk"]
 omit = ["*/tests/*"]
-relative_files = true
 
 [tool.coverage.paths]
 source = ["crazyhusk"]

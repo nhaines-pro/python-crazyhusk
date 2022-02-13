@@ -26,7 +26,9 @@ jobs:
       - name: Install Dependencies
         run: python -m pip install --upgrade pip pytest coverage[toml]
       - name: Test with Pytest
-        run: coverage run --context=${{ matrix.os }}.${{ matrix.python-version }} -m pytest 
+        run: coverage run --context=${{ matrix.os }}.${{ matrix.python-version }} -m pytest
+      - name: Convert Windows coverage paths
+        run: sqlite3 .coverage.${{ matrix.os }}.${{ matrix.python-version }} "update file set path=REPLACE(path,'\','/')" 
       - name: Archive code coverage results
         uses: actions/upload-artifact@v2
         with:
@@ -53,9 +55,9 @@ jobs:
         uses: actions/download-artifact@v2
         with:
             name: coverage-data
-      - name: Create combined coverage report
-        run: |
-          python -m coverage combine
-          python -m coverage xml
+      - name: Create combined coverage file
+        run: python -m coverage combine
+      - name: Create coverage XML report
+        run: python -m coverage xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2

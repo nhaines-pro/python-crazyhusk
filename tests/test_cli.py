@@ -98,15 +98,34 @@ def test_set_subcommand_arguments_types():
     [
         (None, cli.CommandError),
         ([], cli.CommandError),
+        (["test-command"], SystemExit),
+        ([""], SystemExit),
         # TODO: monkeypatch pkg_resources behavior
     ],
 )
 def test_parse_cli_args(args, raises):
     if raises is not None:
         with pytest.raises(raises):
-            cli.parse_cli_args(args)
+            assert cli.parse_cli_args(args)
     else:
         args = cli.parse_cli_args(args)
         assert isinstance(args, argparse.Namespace)
         assert "command" in args
         assert inspect.isfunction(args.command)
+
+@pytest.mark.parametrize(
+    "args,raises",
+    [
+        (None, cli.CommandError),
+        ([], cli.CommandError),
+        (["test-command"], cli.CommandError),
+        ([""], cli.CommandError),
+        # TODO: monkeypatch pkg_resources behavior
+    ],
+)
+def test_parse_cli_run(args, raises):
+    if raises is not None:
+        with pytest.raises(raises):
+            assert cli.run(args)
+    else:
+        assert cli.run(args)

@@ -24,7 +24,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install Dependencies
-        run: python -m pip install --upgrade pip pytest coverage[toml] pytest-cov .
+        run: python -m pip install --upgrade pip pytest coverage[toml] .
       - name: Test with Pytest
         run: coverage run --context=${{ matrix.os }}.${{ matrix.python-version }} -m pytest
       - name: Archive code coverage results
@@ -48,9 +48,9 @@ jobs:
         with:
           python-version: 3.9
       - name: Install Dependencies
-        run: python -m pip install --upgrade pip pytest coverage[toml] pytest-cov .
-      - name: Test with Pytest
-        run: python -m pytest --cov --cov-report xml
+        run: python -m pip install --upgrade pip pytest coverage[toml] .
+      - name: Create Coverage
+        run: coverage run -m pytest
       # - name: Download all workflow run artifacts
       #   uses: actions/download-artifact@v2
       #   with:
@@ -59,7 +59,7 @@ jobs:
       #   run: python ./ci/fix_win_coverage_paths.py
       # - name: Create combined coverage file
       #   run: python -m coverage combine
-      # - name: Create coverage XML report
-      #   run: python -m coverage xml
+      - name: Create coverage XML report
+        run: python -m coverage xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2

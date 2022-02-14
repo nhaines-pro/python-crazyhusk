@@ -8,7 +8,7 @@ write_to = "src/crazyhusk/__version__.py"
 [tool.isort]
 profile = "black"
 skip_gitignore = true
-src_paths = ["crazyhusk"]
+src_paths = ["src/crazyhusk"]
 import_heading_future = "Future Standard Library"
 import_heading_stdlib = "Standard Library"
 import_heading_thirdparty = "Third Party"

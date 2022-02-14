@@ -1,12 +1,13 @@
 # Standard Library
 import json
 import os
+import types
 
 # Third Party
 import pytest
 
 # CrazyHusk
-from crazyhusk import engine
+from crazyhusk import config, engine
 
 
 @pytest.fixture(scope="function")
@@ -216,9 +217,11 @@ def test_unreal_engine_init(base_dir, raises, expected):
 def engine_empty(tmp_path):
     yield engine.UnrealEngine(tmp_path / "Empty")
 
+
 @pytest.fixture(scope="function")
 def engine_local():
     yield engine.UnrealEngine(".")
+
 
 @pytest.fixture(scope="function")
 def engine_empty_version_empty(tmp_path, version_empty):
@@ -247,6 +250,10 @@ def engine_empty_version_egl_4_26_2(tmp_path, version_egl_4_26_2):
     version_file.write_text(json.dumps(version_egl_4_26_2.to_dict()))
     installed_file = build_dir / "InstalledBuild.txt"
     installed_file.write_text("")
+    config_dir = engine_dir / "Config"
+    config_dir.mkdir()
+    base_config_file = config_dir / "Base.ini"
+    base_config_file.write_text("")
     yield engine.UnrealEngine(tmp_engine_dir)
 
 
@@ -265,6 +272,11 @@ def test_unreal_engine_lt_types(engine_empty, engine_empty_version_empty):
 
 def test_unreal_engine_lt(engine_empty_version_empty, engine_empty_version_egl_4_26_2):
     assert engine_empty_version_empty < engine_empty_version_egl_4_26_2
+
+
+def test_unreal_engine_context(engine_empty):
+    with engine_empty:
+        assert engine_empty
 
 
 def test_unreal_engine_dir_properties(engine_empty_version_egl_4_26_2):
@@ -293,15 +305,16 @@ def test_unreal_engine_dir_properties(engine_empty_version_egl_4_26_2):
         engine_empty_version_egl_4_26_2.base_dir, "Engine", "Plugins"
     )
 
+
 @pytest.mark.parametrize(
     "unreal_engine,expected",
     [
         ("engine_empty", None),
         ("engine_empty_version_egl_4_26_2", "Installed"),
-        ("engine_empty_version_empty", "Source")
+        ("engine_empty_version_empty", "Source"),
     ],
 )
-def test_unreal_engine_build_type(unreal_engine,expected,request):
+def test_unreal_engine_build_type(unreal_engine, expected, request):
     unreal_engine = request.getfixturevalue(unreal_engine)
     assert unreal_engine.build_type == expected
 
@@ -315,13 +328,17 @@ def test_unreal_engine_build_type(unreal_engine,expected,request):
         ("engine_local", os.path.realpath(".."), engine.UnrealExecutionError),
     ],
 )
-def test_unreal_engine_exe_common_path(unreal_engine,executable,raises,request):
+def test_unreal_engine_exe_common_path(unreal_engine, executable, raises, request):
     unreal_engine = request.getfixturevalue(unreal_engine)
     if raises is not None:
         with pytest.raises(raises):
             assert engine.UnrealEngine.engine_exe_common_path(unreal_engine, executable)
     else:
-        assert engine.UnrealEngine.engine_exe_common_path(unreal_engine, executable) is None
+        assert (
+            engine.UnrealEngine.engine_exe_common_path(unreal_engine, executable)
+            is None
+        )
+
 
 def test_unreal_engine_exe_common_path_types():
     with pytest.raises(TypeError):
@@ -341,7 +358,7 @@ def test_unreal_engine_exe_common_path_types():
         ("engine_local", os.path.realpath(".."), engine.UnrealExecutionError),
     ],
 )
-def test_unreal_engine_exe_exists(unreal_engine,executable,raises,request):
+def test_unreal_engine_exe_exists(unreal_engine, executable, raises, request):
     unreal_engine = request.getfixturevalue(unreal_engine)
     if raises is not None:
         with pytest.raises(raises):
@@ -364,7 +381,7 @@ def test_unreal_engine_exe_exists_types():
         ("engine_local", engine.UnrealEngineError),
     ],
 )
-def test_unreal_engine_dir_exists(unreal_engine,raises,request):
+def test_unreal_engine_dir_exists(unreal_engine, raises, request):
     unreal_engine = request.getfixturevalue(unreal_engine)
     if raises is not None:
         with pytest.raises(raises):
@@ -373,10 +390,10 @@ def test_unreal_engine_dir_exists(unreal_engine,raises,request):
         assert engine.UnrealEngine.engine_dir_exists(unreal_engine) is None
 
 
-
 def test_unreal_engine_dir_exist_types():
     with pytest.raises(TypeError):
         assert engine.UnrealEngine.engine_dir_exists(None)
+
 
 @pytest.mark.parametrize(
     "unreal_engine,expected",
@@ -414,26 +431,24 @@ def test_unreal_engine_is_source_build(unreal_engine, expected, request):
         ("/Game", engine.UnrealEngineError, None),
         ("/Game/whatever", engine.UnrealEngineError, None),
         ("/Engine", engine.UnrealEngineError, None),
-        ("/Engine/whatever", None, os.path.realpath(os.path.join(".","Engine","Content","whatever.uasset"))),
+        (
+            "/Engine/whatever",
+            None,
+            os.path.realpath(os.path.join(".", "Engine", "Content", "whatever.uasset")),
+        ),
         ("/Invalid", engine.UnrealEngineError, None),
         ("/Invalid/whatever", engine.UnrealEngineError, None),
         ("/test", engine.UnrealEngineError, None),
         ("/test/whatever", engine.UnrealEngineError, None),
     ],
 )
-def test_unreal_path_to_file_path(
-    unreal_path, raises, expected, engine_local
-):
+def test_unreal_path_to_file_path(unreal_path, raises, expected, engine_local):
     if raises:
         with pytest.raises(raises):
-            assert (
-                engine_local.unreal_path_to_file_path(unreal_path)
-                == expected
-            )
+            assert engine_local.unreal_path_to_file_path(unreal_path) == expected
     else:
-        assert (
-            engine_local.unreal_path_to_file_path(unreal_path) == expected
-        )
+        assert engine_local.unreal_path_to_file_path(unreal_path) == expected
+
 
 @pytest.mark.parametrize(
     "file_path,raises,expected",
@@ -450,19 +465,88 @@ def test_unreal_path_to_file_path(
         ),
     ],
 )
-def test_unreal_path_from_file_path(
-    file_path, raises, expected, engine_local
-):
+def test_unreal_path_from_file_path(file_path, raises, expected, engine_local):
     if raises:
         with pytest.raises(raises):
-            assert (
-                engine_local.unreal_path_from_file_path(
-                    file_path
-                )
-                == expected
-            )
+            assert engine_local.unreal_path_from_file_path(file_path) == expected
     else:
-        assert (
-            engine_local.unreal_path_from_file_path(file_path)
-            == expected
-        )
+        assert engine_local.unreal_path_from_file_path(file_path) == expected
+
+
+@pytest.mark.parametrize(
+    "unreal_engine,expected",
+    [
+        ("engine_empty", {}),
+        ("engine_empty_version_egl_4_26_2", {}),
+        ("engine_empty_version_empty", {}),
+        ("engine_local", {}),
+    ],
+)
+def test_unreal_engine_code_templates(unreal_engine, expected, request):
+    unreal_engine = request.getfixturevalue(unreal_engine)
+    assert unreal_engine.code_templates == expected
+
+
+@pytest.mark.parametrize(
+    "unreal_engine,expected",
+    [
+        ("engine_empty", {}),
+        ("engine_empty_version_egl_4_26_2", {}),
+        ("engine_empty_version_empty", {}),
+        ("engine_local", {}),
+    ],
+)
+def test_unreal_engine_plugins(unreal_engine, expected, request):
+    unreal_engine = request.getfixturevalue(unreal_engine)
+    assert unreal_engine.plugins == expected
+
+
+@pytest.mark.parametrize(
+    "association,expected",
+    [
+        ("randomstring", type(None)),
+        # TODO: monkeypatch pkg_resources behavior
+    ],
+)
+def test_unreal_engine_find_engine(association, expected):
+    assert type(engine.UnrealEngine.find_engine(association)) == expected
+
+
+def test_unreal_engine_list_all_engines():
+    assert isinstance(engine.UnrealEngine.list_all_engines(), types.GeneratorType)
+
+    # TODO: monkeypatch pkg_resources behavior
+    assert list(engine.UnrealEngine.list_all_engines())
+
+
+@pytest.mark.parametrize(
+    "unreal_engine,config_category,platform,expected_count",
+    [
+        ("engine_empty_version_egl_4_26_2", None, None, 1),
+        ("engine_empty_version_egl_4_26_2", "", None, 1),
+        ("engine_empty_version_egl_4_26_2", "test", None, 1),
+        ("engine_empty_version_egl_4_26_2", "Engine", None, 2),
+        ("engine_empty_version_egl_4_26_2", "Engine", "Windows", 4),
+    ],
+)
+def test_unreal_engine_config_files(
+    unreal_engine, config_category, platform, expected_count, request
+):
+    unreal_engine = request.getfixturevalue(unreal_engine)
+    assert (
+        len(list(unreal_engine.config_files(config_category, platform)))
+        == expected_count
+    )
+
+
+def test_unreal_engine_config(engine_empty_version_egl_4_26_2):
+    assert isinstance(
+        engine_empty_version_egl_4_26_2.config(), config.UnrealConfigParser
+    )
+    assert isinstance(
+        engine_empty_version_egl_4_26_2.config("Engine"), config.UnrealConfigParser
+    )
+    assert isinstance(
+        engine_empty_version_egl_4_26_2.config("Engine", "Windows"),
+        config.UnrealConfigParser,
+    )

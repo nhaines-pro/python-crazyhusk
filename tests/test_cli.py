@@ -113,6 +113,7 @@ def test_parse_cli_args(args, raises):
         assert "command" in args
         assert inspect.isfunction(args.command)
 
+
 @pytest.mark.parametrize(
     "args,raises",
     [

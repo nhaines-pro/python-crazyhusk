@@ -117,10 +117,10 @@ def test_parse_cli_args(args, raises):
 @pytest.mark.parametrize(
     "args,raises",
     [
-        (None, cli.CommandError),
-        ([], cli.CommandError),
-        (["test-command"], cli.CommandError),
-        ([""], cli.CommandError),
+        (None, (cli.CommandError, SystemExit)),
+        ([], (cli.CommandError, SystemExit)),
+        (["test-command"], (cli.CommandError, SystemExit)),
+        ([""], (cli.CommandError, SystemExit)),
         # TODO: monkeypatch pkg_resources behavior
     ],
 )

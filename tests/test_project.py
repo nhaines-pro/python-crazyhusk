@@ -1,11 +1,13 @@
 # Standard Library
+import json
+import os
 import types
 
 # Third Party
 import pytest
 
 # CrazyHusk
-from crazyhusk import module, project
+from crazyhusk import code, config, engine, module, plugin, project
 
 
 @pytest.fixture(scope="function")
@@ -24,7 +26,7 @@ def empty_association_project_descriptor():
 def basic_project_descriptor():
     _project = project.ProjectDescriptor()
     _project.description = "Basic"
-    _project.engine_association = "4.26"
+    _project.engine_association = ""
     yield _project
 
 
@@ -149,6 +151,25 @@ def empty_file_content_unreal_project(tmp_path):
     yield project.UnrealProject(project_file)
 
 
+@pytest.fixture(scope="function")
+def basic_unreal_project(tmp_path, basic_project_descriptor_withmodule_dict):
+    project_file = tmp_path / "MyProject.uproject"
+    project_file.write_text(json.dumps(basic_project_descriptor_withmodule_dict))
+    yield project.UnrealProject(project_file)
+
+
+@pytest.fixture(scope="function")
+def basic_unreal_project_realpath(basic_project_descriptor_withmodule_dict):
+    project_file = os.path.realpath("./MyProject.uproject")
+    engine_dir = os.path.realpath("../Engine")
+    os.makedirs(engine_dir, exist_ok=True)
+    with open(project_file, "w", encoding="utf-8") as _file:
+        json.dump(basic_project_descriptor_withmodule_dict, _file)
+    yield project.UnrealProject(project_file)
+    os.remove(project_file)
+    os.removedirs(engine_dir)
+
+
 @pytest.mark.parametrize(
     "unreal_project,raises",
     [
@@ -233,3 +254,133 @@ def test_unreal_project_valid_project_file_extension(unreal_project, raises, req
 def test_unreal_project_valid_project_file_extension_types():
     with pytest.raises(TypeError):
         assert project.UnrealProject.valid_project_file_extension(None) is None
+
+
+@pytest.mark.parametrize(
+    "unreal_project,expected_type",
+    [
+        ("basic_unreal_project", module.ModuleDescriptor),
+    ],
+)
+def test_unreal_project_modules(unreal_project, expected_type, request):
+    unreal_project = request.getfixturevalue(unreal_project)
+    for _name, _module in unreal_project.modules.items():
+        assert isinstance(_name, str)
+        assert isinstance(_module, expected_type)
+
+
+def test_unreal_project_descriptor(basic_unreal_project):
+    assert isinstance(basic_unreal_project.descriptor, project.ProjectDescriptor)
+
+
+@pytest.mark.parametrize(
+    "unreal_path,raises,expected",
+    [
+        ("", project.UnrealProjectError, None),
+        ("/", project.UnrealProjectError, None),
+        ("/Game", project.UnrealProjectError, None),
+        (
+            "/Game/whatever",
+            None,
+            os.path.realpath(os.path.join(".", "Content", "whatever.uasset")),
+        ),
+        ("/Engine", project.UnrealProjectError, None),
+        (
+            "/Engine/whatever",
+            None,
+            os.path.realpath(
+                os.path.join("..", "Engine", "Content", "whatever.uasset")
+            ),
+        ),
+        ("/Invalid", project.UnrealProjectError, None),
+        ("/Invalid/whatever", project.UnrealProjectError, None),
+        ("/test", project.UnrealProjectError, None),
+        ("/test/whatever", project.UnrealProjectError, None),
+    ],
+)
+def test_unreal_path_to_file_path(
+    unreal_path, raises, expected, basic_unreal_project_realpath
+):
+    if raises:
+        with pytest.raises(raises):
+            assert (
+                basic_unreal_project_realpath.unreal_path_to_file_path(unreal_path)
+                == expected
+            )
+    else:
+        assert (
+            basic_unreal_project_realpath.unreal_path_to_file_path(unreal_path)
+            == expected
+        )
+
+
+@pytest.mark.parametrize(
+    "file_path,raises,expected",
+    [
+        ("", None, None),
+        ("/", None, None),
+        (".", None, None),
+        (os.path.realpath("."), None, None),
+        (os.path.realpath("./Content"), None, "/Game/"),
+        (
+            os.path.realpath(os.path.join(".", "Content", "whatever.uasset")),
+            None,
+            "/Game/whatever",
+        ),
+        (os.path.realpath("../Engine/Content"), None, "/Engine/"),
+        (
+            os.path.realpath(
+                os.path.join("..", "Engine", "Content", "whatever.uasset")
+            ),
+            None,
+            "/Engine/whatever",
+        ),
+    ],
+)
+def test_unreal_path_from_file_path(
+    file_path, raises, expected, basic_unreal_project_realpath
+):
+    if raises:
+        with pytest.raises(raises):
+            assert (
+                basic_unreal_project_realpath.unreal_path_from_file_path(file_path)
+                == expected
+            )
+    else:
+        assert (
+            basic_unreal_project_realpath.unreal_path_from_file_path(file_path)
+            == expected
+        )
+
+
+def test_unreal_project_plugins(basic_unreal_project_realpath):
+    for _name, _plugin in basic_unreal_project_realpath.plugins.items():
+        assert isinstance(_name, str)
+        assert isinstance(_plugin, plugin.UnrealPlugin)
+
+
+def test_unreal_project_code_templates(basic_unreal_project_realpath):
+    for _name, _plugin in basic_unreal_project_realpath.code_templates.items():
+        assert isinstance(_name, str)
+        assert isinstance(_plugin, code.CodeTemplate)
+
+
+@pytest.mark.parametrize(
+    "category,platform,expected",
+    [
+        (None, None, 0),
+        ("Engine", None, 1),
+        ("Engine", "Windows", 2),
+    ],
+)
+def test_unreal_project_config_files(
+    basic_unreal_project_realpath, category, platform, expected
+):
+    assert (
+        len(list(basic_unreal_project_realpath.config_files(category, platform)))
+        == expected
+    )
+
+
+def test_unreal_project_config(basic_unreal_project_realpath):
+    assert isinstance(basic_unreal_project_realpath.config(), config.UnrealConfigParser)

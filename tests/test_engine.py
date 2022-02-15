@@ -122,7 +122,7 @@ def test_unreal_version_string(version, version_string, request):
         ),
     ],
 )
-def test_module_descriptor_repr(version, version_repr, request):
+def test_unreal_version_repr(version, version_repr, request):
     version = request.getfixturevalue(version)
     assert repr(version) == version_repr
 

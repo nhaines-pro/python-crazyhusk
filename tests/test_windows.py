@@ -73,23 +73,7 @@ def test_list_egl_engine_windows_with_datfile(basic_datfile, tmp_path, monkeypat
         assert isinstance(_engine, UnrealEngine)
 
 
-def raise_oserror(*args):
-    raise OSError
-
-
-def test_find_registered_engine_windows_platforms(monkeypatch):
-    monkeypatch.setattr("winreg.OpenKey", raise_oserror)
+def test_registry_nonwindows(monkeypatch):
     monkeypatch.setattr("platform.system", lambda: "NotWindows")
     assert engine.find_registered_engines_windows("random_string") is None
-    monkeypatch.setattr("platform.system", lambda: "Windows")
-    assert engine.find_registered_engines_windows("random_string") is None
-
-
-def test_list_registered_engine_windows_platforms(monkeypatch):
-    monkeypatch.setattr("winreg.OpenKey", raise_oserror)
-    monkeypatch.setattr("platform.system", lambda: "NotWindows")
-    for _engine in engine.list_registered_engines_windows():
-        assert _engine is None
-    monkeypatch.setattr("platform.system", lambda: "Windows")
-    for _engine in engine.list_registered_engines_windows():
-        assert _engine is None
+    assert len(list(engine.list_registered_engines_windows())) == 0

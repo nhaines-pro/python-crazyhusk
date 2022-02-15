@@ -77,8 +77,28 @@ class ProjectDescriptor(object):
             return descriptor
         return dct
 
+    def to_dict(self):
+        return {
+            "EngineAssociation": self.engine_association,
+            "Category": self.category,
+            "Description": self.description,
+            "DisableEnginePluginsByDefault": self.disable_engine_plugins_by_default,
+            "IsEnterpriseProject": self.is_enterprise_project,
+            "EpicSampleNameHash": self.epic_sample_name_hash,
+            "PostBuildSteps": self.post_build_steps,
+            "PreBuildSteps": self.pre_build_steps,
+            "TargetPlatforms": self.target_platforms,
+            "Modules": list(self.modules),
+            "Plugins": list(self.plugins),
+        }
+
     def is_valid(self):
         return self.engine_association is not None
+
+    def add_module(self, module):
+        if not isinstance(module, ModuleDescriptor):
+            return NotImplemented
+        self.__modules.append(module)
 
 
 class UnrealProject(object):

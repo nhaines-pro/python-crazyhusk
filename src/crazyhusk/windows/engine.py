@@ -62,10 +62,6 @@ def list_egl_engines_windows():
                     item.get("AppVersion", "").split("-")[0][:-2],
                 )
 
-    # check legacy paths
-    for ue_dir in glob.iglob(r"C:\Program Files\Epic Games\UE_*"):
-        yield UnrealEngine(ue_dir, ue_dir.split("UE_")[-1])
-
 
 def list_registered_engines_windows():
     """List all engines associated via Windows Registry keys."""

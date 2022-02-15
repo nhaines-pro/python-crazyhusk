@@ -2,8 +2,9 @@
 import pytest
 
 # CrazyHusk
-from crazyhusk.__main__ import main
 from crazyhusk import cli
+from crazyhusk.__main__ import main
+
 
 @pytest.mark.parametrize(
     "args,raises",

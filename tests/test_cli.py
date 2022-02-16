@@ -93,6 +93,26 @@ def test_set_subcommand_arguments_types():
     )
 
 
+def test():
+    return
+
+
+class test_entry_point:
+    def __init__(self) -> None:
+        self.name = "test"
+
+    def load(*args):
+        return test
+
+
+class null_entry_point:
+    def __init__(self) -> None:
+        self.name = "test"
+
+    def load(*args):
+        return None
+
+
 @pytest.mark.parametrize(
     "args,raises",
     [
@@ -100,10 +120,10 @@ def test_set_subcommand_arguments_types():
         ([], cli.CommandError),
         (["test-command"], SystemExit),
         ([""], SystemExit),
-        # TODO: monkeypatch pkg_resources behavior
     ],
 )
-def test_parse_cli_args(args, raises):
+def test_parse_cli_args(args, raises, monkeypatch):
+    monkeypatch.setattr("pkg_resources.iter_entry_points", lambda x: [])
     if raises is not None:
         with pytest.raises(raises):
             assert cli.parse_cli_args(args)
@@ -114,6 +134,21 @@ def test_parse_cli_args(args, raises):
         assert inspect.isfunction(args.command)
 
 
+def test_parse_cli_args_entry_points(monkeypatch):
+    monkeypatch.setattr(
+        "pkg_resources.iter_entry_points", lambda x: [test_entry_point()]
+    )
+    args = cli.parse_cli_args(["test"])
+    assert isinstance(args, argparse.Namespace)
+    assert "command" in args
+
+    monkeypatch.setattr(
+        "pkg_resources.iter_entry_points", lambda x: [null_entry_point()]
+    )
+    with pytest.raises(SystemExit):
+        assert cli.parse_cli_args(["test"]) is None
+
+
 @pytest.mark.parametrize(
     "args,raises",
     [
@@ -121,12 +156,19 @@ def test_parse_cli_args(args, raises):
         ([], (cli.CommandError, SystemExit)),
         (["test-command"], (cli.CommandError, SystemExit)),
         ([""], (cli.CommandError, SystemExit)),
-        # TODO: monkeypatch pkg_resources behavior
     ],
 )
-def test_parse_cli_run(args, raises):
+def test_cli_run(args, raises, monkeypatch):
+    monkeypatch.setattr("pkg_resources.iter_entry_points", lambda x: [])
     if raises is not None:
         with pytest.raises(raises):
             assert cli.run(args)
     else:
         assert cli.run(args)
+
+
+def test_cli_run_entry_points(monkeypatch):
+    monkeypatch.setattr(
+        "pkg_resources.iter_entry_points", lambda x: [test_entry_point()]
+    )
+    assert cli.run(["test"]) is None

@@ -269,7 +269,8 @@ def test_unreal_project_modules(unreal_project, expected_type, request):
         assert isinstance(_module, expected_type)
 
 
-def test_unreal_project_descriptor(basic_unreal_project):
+def test_unreal_project_descriptor(basic_unreal_project, monkeypatch):
+    monkeypatch.setattr("pkg_resources.iter_entry_points", lambda x: [])
     assert isinstance(basic_unreal_project.descriptor, project.ProjectDescriptor)
 
 
@@ -382,5 +383,9 @@ def test_unreal_project_config_files(
     )
 
 
-def test_unreal_project_config(basic_unreal_project_realpath):
+def test_unreal_project_config(
+    basic_unreal_project_realpath, empty_file_unreal_project, monkeypatch
+):
+    monkeypatch.setattr("pkg_resources.iter_entry_points", lambda x: [])
     assert isinstance(basic_unreal_project_realpath.config(), config.UnrealConfigParser)
+    assert isinstance(empty_file_unreal_project.config(), config.UnrealConfigParser)

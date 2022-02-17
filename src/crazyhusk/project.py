@@ -169,7 +169,6 @@ class UnrealProject(object):
         if not isinstance(new_engine, UnrealEngine):
             new_engine = UnrealEngine.find_engine(new_engine)
 
-        new_engine.validate()
         self.__engine = new_engine
 
     @property

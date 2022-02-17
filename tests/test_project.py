@@ -56,6 +56,26 @@ def basic_project_descriptor_withmodule_dict(
     yield dct
 
 
+def test(*args):
+    return
+
+
+class test_entry_point:
+    def __init__(self) -> None:
+        self.name = "test"
+
+    def load(*args):
+        return test
+
+
+class null_entry_point:
+    def __init__(self) -> None:
+        self.name = "test"
+
+    def load(*args):
+        return None
+
+
 def test_project_descriptor_init(null_association_project_descriptor):
     assert null_association_project_descriptor.engine_association is None
     assert null_association_project_descriptor.category == ""
@@ -149,6 +169,16 @@ def empty_file_content_unreal_project(tmp_path):
     project_file = tmp_path / "MyProject.uproject"
     project_file.write_text("")
     yield project.UnrealProject(project_file)
+
+
+@pytest.fixture(scope="function")
+def null_engine_unreal_project(tmp_path, monkeypatch):
+    monkeypatch.setattr("pkg_resources.iter_entry_points", lambda x: [])
+    project_file = tmp_path / "MyProject.uproject"
+    project_file.write_text('{"EngineAssociation":"123456"}')
+    _project = project.UnrealProject(project_file)
+    _project.engine = None
+    yield _project
 
 
 @pytest.fixture(scope="function")
@@ -360,7 +390,8 @@ def test_unreal_project_plugins(basic_unreal_project_realpath):
         assert isinstance(_plugin, plugin.UnrealPlugin)
 
 
-def test_unreal_project_code_templates(basic_unreal_project_realpath):
+def test_unreal_project_code_templates(basic_unreal_project_realpath, monkeypatch):
+    monkeypatch.setattr("pkg_resources.iter_entry_points", lambda x: [])
     for _name, _plugin in basic_unreal_project_realpath.code_templates.items():
         assert isinstance(_name, str)
         assert isinstance(_plugin, code.CodeTemplate)
@@ -389,3 +420,24 @@ def test_unreal_project_config(
     monkeypatch.setattr("pkg_resources.iter_entry_points", lambda x: [])
     assert isinstance(basic_unreal_project_realpath.config(), config.UnrealConfigParser)
     assert isinstance(empty_file_unreal_project.config(), config.UnrealConfigParser)
+
+
+def test_unreal_project_engine(
+    basic_unreal_project_realpath, null_engine_unreal_project, monkeypatch
+):
+    monkeypatch.setattr("pkg_resources.iter_entry_points", lambda x: [])
+    assert isinstance(basic_unreal_project_realpath.engine, engine.UnrealEngine)
+    assert null_engine_unreal_project.engine is None
+
+
+def test_unreal_project_list_project_code_templates(basic_unreal_project_realpath):
+    assert (
+        len(
+            list(
+                project.UnrealProject.list_project_code_templates(
+                    basic_unreal_project_realpath
+                )
+            )
+        )
+        == 0
+    )

@@ -1,4 +1,5 @@
 # Standard Library
+import json
 import os
 import types
 
@@ -6,7 +7,7 @@ import types
 import pytest
 
 # CrazyHusk
-from crazyhusk import module, plugin
+from crazyhusk import code, module, plugin
 
 
 @pytest.fixture(scope="function")
@@ -253,6 +254,13 @@ def empty_file_content_unreal_plugin(tmp_path):
     yield plugin.UnrealPlugin(plugin_file)
 
 
+@pytest.fixture(scope="function")
+def basic_unreal_plugin(tmp_path, basic_plugin_descriptor_withmodule_dict):
+    plugin_file = tmp_path / "Basic.uplugin"
+    plugin_file.write_text(json.dumps(basic_plugin_descriptor_withmodule_dict))
+    yield plugin.UnrealPlugin(plugin_file)
+
+
 @pytest.mark.parametrize(
     "plugin_file,raises",
     [(None, TypeError), ("", None)],
@@ -403,3 +411,63 @@ def test_unreal_path_from_file_path(
             invalid_file_unreal_plugin_realpath.unreal_path_from_file_path(file_path)
             == expected
         )
+
+
+def test_unreal_plugin_code_templates(empty_file_content_unreal_plugin, monkeypatch):
+    monkeypatch.setattr("pkg_resources.iter_entry_points", lambda x: [])
+    for _name, _plugin in empty_file_content_unreal_plugin.code_templates.items():
+        assert isinstance(_name, str)
+        assert isinstance(_plugin, code.CodeTemplate)
+
+
+def test_unreal_plugin_properties_types(
+    empty_file_content_unreal_plugin, basic_unreal_plugin, monkeypatch
+):
+    monkeypatch.setattr("pkg_resources.iter_entry_points", lambda x: [])
+    with pytest.raises(json.decoder.JSONDecodeError):
+        assert empty_file_content_unreal_plugin.descriptor is None
+
+    for _name, _module in basic_unreal_plugin.modules.items():
+        assert isinstance(_name, str)
+        assert isinstance(_module, module.ModuleDescriptor)
+
+    for _name, _ref in basic_unreal_plugin.plugin_refs.items():
+        assert isinstance(_name, str)
+        assert isinstance(_ref, plugin.PluginReferenceDescriptor)
+
+
+def test_unreal_plugin_list_plugin_code_templates(basic_unreal_plugin):
+    assert (
+        len(list(plugin.UnrealPlugin.list_plugin_code_templates(basic_unreal_plugin)))
+        == 0
+    )
+
+
+def test(*args):
+    return
+
+
+class test_entry_point:
+    def __init__(self) -> None:
+        self.name = "test"
+
+    def load(*args):
+        return test
+
+
+class null_entry_point:
+    def __init__(self) -> None:
+        self.name = "test"
+
+    def load(*args):
+        return None
+
+
+def test_unreal_plugin_validate(basic_unreal_plugin, monkeypatch):
+    monkeypatch.setattr("pkg_resources.iter_entry_points", lambda x: [])
+    assert basic_unreal_plugin.validate() is None
+
+    monkeypatch.setattr(
+        "pkg_resources.iter_entry_points", lambda x: [test_entry_point()]
+    )
+    assert basic_unreal_plugin.validate() is None

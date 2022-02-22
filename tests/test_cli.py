@@ -122,8 +122,7 @@ class null_entry_point:
         ([""], SystemExit),
     ],
 )
-def test_parse_cli_args(args, raises, monkeypatch):
-    # monkeypatch.setattr("importlib.metadata.entry_points", lambda: {})
+def test_parse_cli_args(args, raises):
     cli.entry_points = lambda: {}
     if raises is not None:
         with pytest.raises(raises):
@@ -135,20 +134,12 @@ def test_parse_cli_args(args, raises, monkeypatch):
         assert inspect.isfunction(args.command)
 
 
-def test_parse_cli_args_entry_points(monkeypatch):
-    # monkeypatch.setattr(
-    #     "importlib.metadata.entry_points",
-    #     lambda: {"crazyhusk.commands": [test_entry_point()]},
-    # )
+def test_parse_cli_args_entry_points():
     cli.entry_points = lambda: {"crazyhusk.commands": [test_entry_point()]}
     args = cli.parse_cli_args(["test"])
     assert isinstance(args, argparse.Namespace)
     assert "command" in args
 
-    # monkeypatch.setattr(
-    #     "importlib.metadata.entry_points",
-    #     lambda: {"crazyhusk.commands": [null_entry_point()]},
-    # )
     cli.entry_points = lambda: {"crazyhusk.commands": [null_entry_point()]}
     with pytest.raises(SystemExit):
         assert cli.parse_cli_args(["test"]) is None
@@ -163,8 +154,7 @@ def test_parse_cli_args_entry_points(monkeypatch):
         ([""], (cli.CommandError, SystemExit)),
     ],
 )
-def test_cli_run(args, raises, monkeypatch):
-    # monkeypatch.setattr("importlib.metadata.entry_points", lambda: {})
+def test_cli_run(args, raises):
     cli.entry_points = lambda: {}
     if raises is not None:
         with pytest.raises(raises):
@@ -173,10 +163,6 @@ def test_cli_run(args, raises, monkeypatch):
         assert cli.run(args)
 
 
-def test_cli_run_entry_points(monkeypatch):
-    # monkeypatch.setattr(
-    #     "importlib.metadata.entry_points",
-    #     lambda: {"crazyhusk.commands": [test_entry_point()]},
-    # )
+def test_cli_run_entry_points():
     cli.entry_points = lambda: {"crazyhusk.commands": [test_entry_point()]}
     assert cli.run(["test"]) is None

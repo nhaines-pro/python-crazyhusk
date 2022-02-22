@@ -172,8 +172,7 @@ def empty_file_content_unreal_project(tmp_path):
 
 
 @pytest.fixture(scope="function")
-def null_engine_unreal_project(tmp_path, monkeypatch):
-    # monkeypatch.setattr("importlib.metadata.entry_points", lambda: {})
+def null_engine_unreal_project(tmp_path):
     project.entry_points = lambda: {}
     project_file = tmp_path / "MyProject.uproject"
     project_file.write_text('{"EngineAssociation":"123456"}')
@@ -300,8 +299,7 @@ def test_unreal_project_modules(unreal_project, expected_type, request):
         assert isinstance(_module, expected_type)
 
 
-def test_unreal_project_descriptor(basic_unreal_project, monkeypatch):
-    # monkeypatch.setattr("importlib.metadata.entry_points", lambda: {})
+def test_unreal_project_descriptor(basic_unreal_project):
     project.entry_points = lambda: {}
     assert isinstance(basic_unreal_project.descriptor, project.ProjectDescriptor)
 
@@ -392,8 +390,7 @@ def test_unreal_project_plugins(basic_unreal_project_realpath):
         assert isinstance(_plugin, plugin.UnrealPlugin)
 
 
-def test_unreal_project_code_templates(basic_unreal_project_realpath, monkeypatch):
-    # monkeypatch.setattr("importlib.metadata.entry_points", lambda: {})
+def test_unreal_project_code_templates(basic_unreal_project_realpath):
     project.entry_points = lambda: {}
     for _name, _plugin in basic_unreal_project_realpath.code_templates.items():
         assert isinstance(_name, str)
@@ -418,18 +415,16 @@ def test_unreal_project_config_files(
 
 
 def test_unreal_project_config(
-    basic_unreal_project_realpath, empty_file_unreal_project, monkeypatch
+    basic_unreal_project_realpath, empty_file_unreal_project
 ):
-    # monkeypatch.setattr("importlib.metadata.entry_points", lambda: {})
     project.entry_points = lambda: {}
     assert isinstance(basic_unreal_project_realpath.config(), config.UnrealConfigParser)
     assert isinstance(empty_file_unreal_project.config(), config.UnrealConfigParser)
 
 
 def test_unreal_project_engine(
-    basic_unreal_project_realpath, null_engine_unreal_project, monkeypatch
+    basic_unreal_project_realpath, null_engine_unreal_project
 ):
-    # monkeypatch.setattr("importlib.metadata.entry_points", lambda: {})
     project.entry_points = lambda: {}
     assert isinstance(basic_unreal_project_realpath.engine, engine.UnrealEngine)
     assert null_engine_unreal_project.engine is None

@@ -414,7 +414,7 @@ def test_unreal_path_from_file_path(
 
 
 def test_unreal_plugin_code_templates(empty_file_content_unreal_plugin, monkeypatch):
-    monkeypatch.setattr("pkg_resources.iter_entry_points", lambda x: [])
+    monkeypatch.setattr("importlib.metadata.entry_points", lambda: {})
     for _name, _plugin in empty_file_content_unreal_plugin.code_templates.items():
         assert isinstance(_name, str)
         assert isinstance(_plugin, code.CodeTemplate)
@@ -423,7 +423,7 @@ def test_unreal_plugin_code_templates(empty_file_content_unreal_plugin, monkeypa
 def test_unreal_plugin_properties_types(
     empty_file_content_unreal_plugin, basic_unreal_plugin, monkeypatch
 ):
-    monkeypatch.setattr("pkg_resources.iter_entry_points", lambda x: [])
+    monkeypatch.setattr("importlib.metadata.entry_points", lambda: {})
     with pytest.raises(json.decoder.JSONDecodeError):
         assert empty_file_content_unreal_plugin.descriptor is None
 
@@ -464,10 +464,11 @@ class null_entry_point:
 
 
 def test_unreal_plugin_validate(basic_unreal_plugin, monkeypatch):
-    monkeypatch.setattr("pkg_resources.iter_entry_points", lambda x: [])
+    monkeypatch.setattr("importlib.metadata.entry_points", lambda: {})
     assert basic_unreal_plugin.validate() is None
 
     monkeypatch.setattr(
-        "pkg_resources.iter_entry_points", lambda x: [test_entry_point()]
+        "importlib.metadata.entry_points",
+        lambda: {"crazyhusk.plugin.validators": [test_entry_point()]},
     )
     assert basic_unreal_plugin.validate() is None

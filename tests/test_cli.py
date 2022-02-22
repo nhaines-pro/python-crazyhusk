@@ -123,7 +123,7 @@ class null_entry_point:
     ],
 )
 def test_parse_cli_args(args, raises, monkeypatch):
-    monkeypatch.setattr("pkg_resources.iter_entry_points", lambda x: [])
+    monkeypatch.setattr("importlib.metadata.entry_points", lambda: {})
     if raises is not None:
         with pytest.raises(raises):
             assert cli.parse_cli_args(args)
@@ -136,14 +136,16 @@ def test_parse_cli_args(args, raises, monkeypatch):
 
 def test_parse_cli_args_entry_points(monkeypatch):
     monkeypatch.setattr(
-        "pkg_resources.iter_entry_points", lambda x: [test_entry_point()]
+        "importlib.metadata.entry_points",
+        lambda: {"crazyhusk.commands": [test_entry_point()]},
     )
     args = cli.parse_cli_args(["test"])
     assert isinstance(args, argparse.Namespace)
     assert "command" in args
 
     monkeypatch.setattr(
-        "pkg_resources.iter_entry_points", lambda x: [null_entry_point()]
+        "importlib.metadata.entry_points",
+        lambda: {"crazyhusk.commands": [null_entry_point()]},
     )
     with pytest.raises(SystemExit):
         assert cli.parse_cli_args(["test"]) is None
@@ -159,7 +161,7 @@ def test_parse_cli_args_entry_points(monkeypatch):
     ],
 )
 def test_cli_run(args, raises, monkeypatch):
-    monkeypatch.setattr("pkg_resources.iter_entry_points", lambda x: [])
+    monkeypatch.setattr("importlib.metadata.entry_points", lambda: {})
     if raises is not None:
         with pytest.raises(raises):
             assert cli.run(args)
@@ -169,6 +171,7 @@ def test_cli_run(args, raises, monkeypatch):
 
 def test_cli_run_entry_points(monkeypatch):
     monkeypatch.setattr(
-        "pkg_resources.iter_entry_points", lambda x: [test_entry_point()]
+        "importlib.metadata.entry_points",
+        lambda: {"crazyhusk.commands": [test_entry_point()]},
     )
     assert cli.run(["test"]) is None

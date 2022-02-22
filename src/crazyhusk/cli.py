@@ -1,12 +1,10 @@
 """Expose crazyhusk functionality to the commandline."""
 # Standard Library
 import argparse
+import importlib.metadata
 import inspect
 import logging
 import sys
-
-# Third Party
-import pkg_resources
 
 
 class CommandError(Exception):
@@ -67,7 +65,7 @@ def parse_cli_args(args):
         title="subcommands", description="valid subcommands", help="subcommand help"
     )
 
-    for entry_point in pkg_resources.iter_entry_points("crazyhusk.commands"):
+    for entry_point in importlib.metadata.entry_points().get("crazyhusk.commands", []):
         command = entry_point.load()
         if inspect.isfunction(command):
             cmd_parser = commands_parser.add_parser(entry_point.name)

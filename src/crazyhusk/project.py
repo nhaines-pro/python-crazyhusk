@@ -2,12 +2,10 @@
 
 # Standard Library
 import glob
+import importlib.metadata
 import json
 import os
 from copy import deepcopy
-
-# Third Party
-import pkg_resources
 
 # CrazyHusk
 from crazyhusk.code import CodeTemplate
@@ -131,8 +129,8 @@ class UnrealProject(object):
                     self,
                     *self.plugins.values(),
                 )
-            for entry_point in pkg_resources.iter_entry_points(
-                "crazyhusk.code.listers"
+            for entry_point in importlib.metadata.entry_points().get(
+                "crazyhusk.code.listers", []
             ):
                 for item in items:
                     for template in entry_point.load()(item):
@@ -337,7 +335,7 @@ class UnrealProject(object):
 
     def validate(self):
         """Raise exceptions if this instance is misconfigured."""
-        for entry_point in pkg_resources.iter_entry_points(
-            "crazyhusk.project.validators"
+        for entry_point in importlib.metadata.entry_points().get(
+            "crazyhusk.project.validators", []
         ):
             entry_point.load()(self)

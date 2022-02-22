@@ -1,10 +1,16 @@
 """Expose crazyhusk functionality to the commandline."""
 # Standard Library
 import argparse
-import importlib.metadata
 import inspect
 import logging
 import sys
+
+try:
+    # Standard Library
+    from importlib.metadata import entry_points
+except ImportError:
+    # Third Party
+    from importlib_metadata import entry_points
 
 
 class CommandError(Exception):
@@ -65,7 +71,7 @@ def parse_cli_args(args):
         title="subcommands", description="valid subcommands", help="subcommand help"
     )
 
-    for entry_point in importlib.metadata.entry_points().get("crazyhusk.commands", []):
+    for entry_point in entry_points().get("crazyhusk.commands", []):
         command = entry_point.load()
         if inspect.isfunction(command):
             cmd_parser = commands_parser.add_parser(entry_point.name)

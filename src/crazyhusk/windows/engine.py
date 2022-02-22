@@ -43,7 +43,7 @@ def find_registered_engines_windows(association):
         ) as key:
             base_dir, _ = winreg.QueryValueEx(key, association)
             return UnrealEngine(os.path.join(base_dir, "Engine"), association)
-    except OSError:
+    except (OSError, ModuleNotFoundError):
         return
 
 
@@ -78,7 +78,7 @@ def list_registered_engines_windows():
             for i in range(1024):
                 _key, _value, _type = winreg.EnumValue(key, i)
                 yield UnrealEngine(os.path.abspath(_value), _key)
-    except OSError:
+    except (OSError, ModuleNotFoundError):
         return
 
 

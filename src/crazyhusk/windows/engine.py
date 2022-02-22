@@ -1,6 +1,5 @@
 """Windows platform extensions for UnrealEngine objects."""
 # Standard Library
-import glob
 import json
 import logging
 import os
@@ -81,3 +80,46 @@ def list_registered_engines_windows():
                 yield UnrealEngine(os.path.abspath(_value), _key)
     except OSError:
         return
+
+
+def resolve_executable_path_windows(engine, executable_name):
+    """Resolve an expected real path for a given executable name."""
+    if platform.system() != "Windows":
+        return
+
+    if not isinstance(engine, UnrealEngine):
+        raise TypeError(
+            f"Must provide an instance of crazyhusk.engine.UnrealEngine, got: {engine!r}"
+        )
+
+    executable_name = executable_name.lower()
+    if executable_name == "automationtool":
+        return os.path.realpath(
+            os.path.join(engine.engine_dir, "Binaries", "DotNet", "AutomationTool.exe")
+        )
+    elif executable_name == "swarmagent":
+        return os.path.realpath(
+            os.path.join(engine.engine_dir, "Binaries", "DotNET", "SwarmAgent.exe")
+        )
+    elif executable_name == "swarmcoordinator":
+        return os.path.realpath(
+            os.path.join(
+                engine.engine_dir, "Binaries", "DotNET", "SwarmCoordinator.exe"
+            )
+        )
+    elif executable_name == "unrealbuildtool":
+        return os.path.realpath(
+            os.path.join(engine.engine_dir, "Binaries", "DotNET", "UnrealBuildTool.exe")
+        )
+    elif executable_name == "ue4editor":
+        return os.path.realpath(
+            os.path.join(engine.engine_dir, "Binaries", "Win64", "UE4Editor.exe")
+        )
+    elif executable_name == "ue4editor-cmd":
+        return os.path.realpath(
+            os.path.join(engine.engine_dir, "Binaries", "Win64", "UE4Editor-Cmd.exe")
+        )
+    elif executable_name == "unrealpak":
+        return os.path.realpath(
+            os.path.join(engine.engine_dir, "Binaries", "Win64", "UnrealPak.exe")
+        )

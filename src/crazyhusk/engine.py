@@ -2,13 +2,11 @@
 
 # Standard Library
 import glob
+import importlib.metadata
 import json
 import logging
 import os
 import subprocess
-
-# Third Party
-import pkg_resources
 
 # CrazyHusk
 from crazyhusk.code import CodeTemplate
@@ -190,8 +188,8 @@ class UnrealEngine(object):
         if self.__code_templates is None:
             self.__code_templates = {}
             items = (self, *self.plugins.values())
-            for entry_point in pkg_resources.iter_entry_points(
-                "crazyhusk.code.listers"
+            for entry_point in importlib.metadata.entry_points().get(
+                "crazyhusk.code.listers", []
             ):
                 for item in items:
                     for template in entry_point.load()(item):
@@ -242,7 +240,9 @@ class UnrealEngine(object):
     @staticmethod
     def find_engine(association):
         """Find an engine distribution from EngineAssociation string."""
-        for entry_point in pkg_resources.iter_entry_points("crazyhusk.engine.finders"):
+        for entry_point in importlib.metadata.entry_points().get(
+            "crazyhusk.engine.finders", []
+        ):
             engine = entry_point.load()(association)
             if engine is not None:
                 return engine
@@ -250,7 +250,9 @@ class UnrealEngine(object):
     @staticmethod
     def list_all_engines():
         """List all available engine installations."""
-        for entry_point in pkg_resources.iter_entry_points("crazyhusk.engine.listers"):
+        for entry_point in importlib.metadata.entry_points().get(
+            "crazyhusk.engine.listers", []
+        ):
             for engine in entry_point.load()():
                 yield engine
 
@@ -344,6 +346,15 @@ class UnrealEngine(object):
                     self.config_dir, platform, f"{platform}{config_category}.ini"
                 )
 
+    def executable_path(self, executable_name):
+        """Resolve an expected real path for an executable member of this engine for a given executable name."""
+        for entry_point in importlib.metadata.entry_points().get(
+            "crazyhusk.engine.resolvers", []
+        ):
+            path = entry_point.load()(self, executable_name)
+            if path is not None:
+                return path
+
     def is_installed_build(self):
         """Determine if this engine is an Installed distribution."""
         return os.path.isfile(os.path.join(self.build_dir, "InstalledBuild.txt"))
@@ -404,15 +415,15 @@ class UnrealEngine(object):
 
     def validate(self):
         """Raise exceptions if this instance is misconfigured."""
-        for entry_point in pkg_resources.iter_entry_points(
-            "crazyhusk.engine.validators"
+        for entry_point in importlib.metadata.entry_points().get(
+            "crazyhusk.engine.validators", []
         ):
             entry_point.load()(self)
 
     def sanitize_commandline(self, executable, *args):
         """Raise exceptions if we are about to run unsafe commands in the subprocess."""
-        for entry_point in pkg_resources.iter_entry_points(
-            "crazyhusk.engine.sanitizers"
+        for entry_point in importlib.metadata.entry_points().get(
+            "crazyhusk.engine.sanitizers", []
         ):
             entry_point.load()(self, executable, *args)
         cmd = [executable, *args]
@@ -433,7 +444,9 @@ class UnrealEngine(object):
 
         logger = logging.getLogger("UnrealEngine.run")
         logger.addFilter(FilterEngineRun(executable, *args))
-        for entry_point in pkg_resources.iter_entry_points("crazyhusk.logs.filters"):
+        for entry_point in importlib.metadata.entry_points().get(
+            "crazyhusk.engine.filters", []
+        ):
             logger.addFilter(entry_point.load()())
         logger.info(" ".join(cmd))
 

@@ -130,3 +130,5 @@ dmypy.json
 
 # VS Code
 .vscode/
+
+src/crazyhusk/__version__.py

@@ -26,3 +26,12 @@ tests = ["tests", "*/tests"]
 [tool.coverage.report]
 show_missing = true
 exclude_lines = ["if __name__ == .__main__.:"]
+
+[tool.mypy]
+files = "src/**/*.py"
+strict = true
+warn_unreachable = true
+pretty = true
+show_column_numbers = true
+show_error_codes = true
+show_error_context = true

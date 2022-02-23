@@ -4,20 +4,23 @@ import argparse
 import inspect
 import logging
 import sys
+from typing import Any, List
 
 try:
     # Standard Library
     from importlib.metadata import entry_points
 except ImportError:
     # Third Party
-    from importlib_metadata import entry_points
+    from importlib_metadata import entry_points  # type:ignore
 
 
 class CommandError(Exception):
     """Custom exception representing errors encountered with CLI."""
 
 
-def set_subcommand_arguments(parser, command):
+def set_subcommand_arguments(
+    parser: argparse.ArgumentParser, command: Any
+) -> argparse.ArgumentParser:
     """Dynamically set argparse.Parser subcommand arguments by inspecting a callable function."""
     if not isinstance(parser, argparse.ArgumentParser):
         raise TypeError(
@@ -59,7 +62,7 @@ def set_subcommand_arguments(parser, command):
     return parser
 
 
-def parse_cli_args(args):
+def parse_cli_args(args: List[str]) -> argparse.Namespace:
     """Parse crazyhusk CLI arguments."""
     if args is None:
         raise CommandError("None is not parsable arguments.")
@@ -81,7 +84,7 @@ def parse_cli_args(args):
     return parser.parse_args(args)
 
 
-def run(args=sys.argv[1:]):
+def run(args: List[str] = sys.argv[1:]) -> None:
     """Run the crazyhusk CLI entrypoint."""
     logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 

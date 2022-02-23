@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import platform
+from typing import Iterable, Optional
 
 # CrazyHusk
 from crazyhusk.engine import UnrealEngine
@@ -11,10 +12,10 @@ from crazyhusk.engine import UnrealEngine
 DAT_FILE = r"C:\ProgramData\Epic\UnrealEngineLauncher\LauncherInstalled.dat"
 
 
-def find_egl_engine_windows(association):
+def find_egl_engine_windows(association: str) -> Optional[UnrealEngine]:
     """Find Epic Games Launcher engine distribution from EngineAssociation string."""
     if platform.system() != "Windows":
-        return
+        return None
 
     if os.path.isfile(DAT_FILE):
         with open(DAT_FILE, encoding="utf-8") as _datfile:
@@ -27,12 +28,13 @@ def find_egl_engine_windows(association):
                         item.get("InstallLocation"),
                         item.get("AppVersion", "").split("-")[0][:-2],
                     )
+    return None
 
 
-def find_registered_engines_windows(association):
+def find_registered_engines_windows(association: str) -> Optional[UnrealEngine]:
     """Find Windows Registry engine distribution from EngineAssociation string."""
     if platform.system() != "Windows":
-        return
+        return None
 
     try:
         # Standard Library
@@ -44,10 +46,10 @@ def find_registered_engines_windows(association):
             base_dir, _ = winreg.QueryValueEx(key, association)
             return UnrealEngine(os.path.join(base_dir, "Engine"), association)
     except (OSError, ModuleNotFoundError):
-        return
+        return None
 
 
-def list_egl_engines_windows():
+def list_egl_engines_windows() -> Iterable[UnrealEngine]:
     """List all Epic Games Launcher engines."""
     if platform.system() != "Windows":
         return
@@ -62,7 +64,7 @@ def list_egl_engines_windows():
                 )
 
 
-def list_registered_engines_windows():
+def list_registered_engines_windows() -> Iterable[UnrealEngine]:
     """List all engines associated via Windows Registry keys."""
     if platform.system() != "Windows":
         return
@@ -82,10 +84,12 @@ def list_registered_engines_windows():
         return
 
 
-def resolve_executable_path_windows(engine, executable_name):
+def resolve_executable_path_windows(
+    engine: UnrealEngine, executable_name: str
+) -> Optional[str]:
     """Resolve an expected real path for a given executable name."""
     if platform.system() != "Windows":
-        return
+        return None
 
     if not isinstance(engine, UnrealEngine):
         raise TypeError(
@@ -123,3 +127,4 @@ def resolve_executable_path_windows(engine, executable_name):
         return os.path.realpath(
             os.path.join(engine.engine_dir, "Binaries", "Win64", "UnrealPak.exe")
         )
+    return None

@@ -5,7 +5,7 @@ Example: python -m crazyhusk list_engines
 """
 
 
-def main():
+def main() -> None:
     # CrazyHusk
     from crazyhusk import cli
 

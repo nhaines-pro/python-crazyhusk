@@ -1,17 +1,21 @@
 """Object wrappers for Unreal projects."""
 
+# Future Standard Library
+from __future__ import annotations
+
 # Standard Library
 import glob
 import json
 import os
 from copy import deepcopy
+from typing import Any, Dict, Iterable, List, Optional, Union
 
 try:
     # Standard Library
     from importlib.metadata import entry_points
 except ImportError:
     # Third Party
-    from importlib_metadata import entry_points
+    from importlib_metadata import entry_points  # type:ignore
 
 # CrazyHusk
 from crazyhusk.code import CodeTemplate
@@ -33,35 +37,35 @@ class ProjectDescriptor(object):
     https://docs.unrealengine.com/en-US/API/Runtime/Projects/FProjectDescriptor/index.html
     """
 
-    def __init__(self):
-        self.engine_association = None
-        self.category = ""
-        self.description = ""
-        self.disable_engine_plugins_by_default = False
-        self.is_enterprise_project = False
-        self.epic_sample_name_hash = None
-        self.post_build_steps = None
-        self.pre_build_steps = None
-        self.target_platforms = []
-        self.__plugins = []
-        self.__modules = []
+    def __init__(self) -> None:
+        self.engine_association: Optional[str] = None
+        self.category: str = ""
+        self.description: str = ""
+        self.disable_engine_plugins_by_default: bool = False
+        self.is_enterprise_project: bool = False
+        self.epic_sample_name_hash: Optional[str] = None
+        self.post_build_steps: Optional[List[Any]] = None
+        self.pre_build_steps: Optional[List[Any]] = None
+        self.target_platforms: List[Any] = []
+        self.__plugins: List[Dict[str, Any]] = []
+        self.__modules: List[Dict[str, Any]] = []
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Python interpreter representation of ProjectDescriptor."""
         return f"<ProjectDescriptor {self.description}>"
 
     @property
-    def modules(self):
+    def modules(self) -> Iterable[Union[ModuleDescriptor, Dict[str, Any]]]:
         for module in self.__modules:
             yield ModuleDescriptor.to_object(module)
 
     @property
-    def plugins(self):
+    def plugins(self) -> Iterable[Union[PluginReferenceDescriptor, Dict[str, Any]]]:
         for plugin in self.__plugins:
             yield PluginReferenceDescriptor.to_object(plugin)
 
     @staticmethod
-    def to_object(dct):
+    def to_object(dct: Dict[str, Any]) -> Union[ProjectDescriptor, Dict[str, Any]]:
         descriptor = ProjectDescriptor()
         descriptor.engine_association = dct.get("EngineAssociation")
         descriptor.category = dct.get("Category", "")
@@ -81,7 +85,7 @@ class ProjectDescriptor(object):
             return descriptor
         return dct
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "EngineAssociation": self.engine_association,
             "Category": self.category,
@@ -96,34 +100,34 @@ class ProjectDescriptor(object):
             "Plugins": list(self.plugins),
         }
 
-    def is_valid(self):
+    def is_valid(self) -> bool:
         return self.engine_association is not None
 
-    def add_module(self, module):
+    def add_module(self, module: ModuleDescriptor) -> None:
         if not isinstance(module, ModuleDescriptor):
             return NotImplemented
-        self.__modules.append(module)
+        self.__modules.append(module.to_dict())
 
 
 class UnrealProject(object):
     """Object wrapper representation of an Unreal Engine project."""
 
-    def __init__(self, project_file):
-        self.project_file = project_file
-        self.name = os.path.splitext(os.path.basename(project_file))[0]
+    def __init__(self, project_file: str) -> None:
+        self.project_file: str = project_file
+        self.name: str = os.path.splitext(os.path.basename(project_file))[0]
 
-        self.__descriptor = None
-        self.__engine = None
-        self.__modules = None
-        self.__plugins = None
-        self.__code_templates = None
+        self.__descriptor: Optional[ProjectDescriptor] = None
+        self.__engine: Optional[UnrealEngine] = None
+        self.__modules: Optional[Dict[str, ModuleDescriptor]] = None
+        self.__plugins: Optional[Dict[str, UnrealPlugin]] = None
+        self.__code_templates: Optional[Dict[str, CodeTemplate]] = None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Python interpreter representation."""
         return f"<UnrealProject {self.name} at {self.project_file}>"
 
     @property
-    def code_templates(self):
+    def code_templates(self) -> Dict[str, CodeTemplate]:
         if self.__code_templates is None:
             self.__code_templates = {}
             if self.engine is None:
@@ -142,7 +146,7 @@ class UnrealProject(object):
         return self.__code_templates
 
     @property
-    def descriptor(self):
+    def descriptor(self) -> Optional[ProjectDescriptor]:
         if self.__descriptor is None:
             self.validate()
 
@@ -154,7 +158,7 @@ class UnrealProject(object):
         return self.__descriptor
 
     @property
-    def engine(self):
+    def engine(self) -> Optional[UnrealEngine]:
         if self.__engine is None:
             if self.descriptor.engine_association == "":
                 self.__engine = UnrealEngine(
@@ -167,34 +171,34 @@ class UnrealProject(object):
         return self.__engine
 
     @engine.setter
-    def engine(self, new_engine):
+    def engine(self, new_engine: Union[UnrealEngine, str]) -> None:
         if not isinstance(new_engine, UnrealEngine):
-            new_engine = UnrealEngine.find_engine(new_engine)
-
-        self.__engine = new_engine
+            self.__engine = UnrealEngine.find_engine(new_engine)
+        else:
+            self.__engine = new_engine
 
     @property
-    def project_dir(self):
+    def project_dir(self) -> str:
         """Get the base directory for .uproject file."""
         return os.path.dirname(self.project_file)
 
     @property
-    def config_dir(self):
+    def config_dir(self) -> str:
         """Get the project's Config directory."""
         return os.path.join(self.project_dir, "Config")
 
     @property
-    def content_dir(self):
+    def content_dir(self) -> str:
         """Get the project's Content directory."""
         return os.path.join(self.project_dir, "Content")
 
     @property
-    def plugins_dir(self):
+    def plugins_dir(self) -> str:
         """Get the project's Plugins directory."""
         return os.path.join(self.project_dir, "Plugins")
 
     @property
-    def modules(self):
+    def modules(self) -> Dict[str, ModuleDescriptor]:
         if self.__modules is None:
             self.__modules = {
                 module.name: module
@@ -204,7 +208,7 @@ class UnrealProject(object):
         return self.__modules
 
     @property
-    def plugins(self):
+    def plugins(self) -> Dict[str, UnrealPlugin]:
         if self.__plugins is None:
             if self.engine is None:
                 self.__plugins = {}
@@ -220,13 +224,13 @@ class UnrealProject(object):
         return self.__plugins
 
     @property
-    def saved_dir(self):
+    def saved_dir(self) -> str:
         """Get the project's Saved directory."""
         return os.path.join(self.project_dir, "Saved")
 
     # crazyhusk.code.listers
     @staticmethod
-    def list_project_code_templates(project):
+    def list_project_code_templates(project: UnrealProject) -> Iterable[CodeTemplate]:
         if isinstance(project, UnrealProject):
             for template_filename in glob.iglob(
                 os.path.join(project.content_dir, "Editor", "Templates", "*.template")
@@ -242,7 +246,7 @@ class UnrealProject(object):
 
     # crazyhusk.project.validators
     @staticmethod
-    def project_file_exists(project):
+    def project_file_exists(project: UnrealProject) -> None:
         """Raise exception if UnrealProject instance is not available on disk."""
         if not isinstance(project, UnrealProject):
             raise TypeError(
@@ -254,7 +258,7 @@ class UnrealProject(object):
             )
 
     @staticmethod
-    def valid_project_file_extension(project):
+    def valid_project_file_extension(project: UnrealProject) -> None:
         """Raise exception if UnrealProject instance does not have the correct file extension."""
         if not isinstance(project, UnrealProject):
             raise TypeError(
@@ -263,7 +267,9 @@ class UnrealProject(object):
         if not os.path.splitext(project.project_file)[-1] == ".uproject":
             raise UnrealProjectError(f"Not a uproject file: {project.project_file}")
 
-    def config(self, config_category=None, platform=None):
+    def config(
+        self, config_category: Optional[str] = None, platform: Optional[str] = None
+    ) -> UnrealConfigParser:
         """Create a configuration object associated with this project by category and platform."""
         _config = UnrealConfigParser()
         if isinstance(self.engine, UnrealEngine):
@@ -272,7 +278,9 @@ class UnrealProject(object):
         _config.read(self.config_files(config_category, platform))
         return _config
 
-    def config_files(self, config_category=None, platform=None):
+    def config_files(
+        self, config_category: Optional[str] = None, platform: Optional[str] = None
+    ) -> Iterable[str]:
         """Iterate configuration file paths associated with this project by category and platform."""
         if config_category in CONFIG_CATEGORIES:
             yield os.path.join(self.config_dir, f"Default{config_category}.ini")
@@ -281,7 +289,7 @@ class UnrealProject(object):
                     self.config_dir, platform, f"{platform}{config_category}.ini"
                 )
 
-    def unreal_path_to_file_path(self, unreal_path, ext=".uasset"):
+    def unreal_path_to_file_path(self, unreal_path: str, ext: str = ".uasset") -> str:
         """Convert an Unreal object path to a file path relative to this project."""
         path_split = unreal_path.split("/")
         if len(path_split) < 3:
@@ -305,7 +313,7 @@ class UnrealProject(object):
             f"Can't resolve Unreal path: {unreal_path} - could not find plugin or feature pack mount {mount}."
         )
 
-    def unreal_path_from_file_path(self, file_path):
+    def unreal_path_from_file_path(self, file_path: str) -> Optional[str]:
         """Convert a file path to an appropriate Unreal object path for use with this project."""
         if (
             os.path.commonpath([os.path.realpath(file_path), self.content_dir])
@@ -336,8 +344,9 @@ class UnrealProject(object):
             unreal_path = plugin.unreal_path_from_file_path(file_path)
             if unreal_path is not None:
                 return unreal_path
+        return None
 
-    def validate(self):
+    def validate(self) -> None:
         """Raise exceptions if this instance is misconfigured."""
         for entry_point in entry_points().get("crazyhusk.project.validators", []):
             entry_point.load()(self)

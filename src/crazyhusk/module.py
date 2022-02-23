@@ -1,5 +1,11 @@
 """Wrapper objects for Unreal code modules."""
 
+# Future Standard Library
+from __future__ import annotations
+
+# Standard Library
+from typing import Any, Dict, List, Optional, Union
+
 __all__ = ["ModuleDescriptor"]
 
 HOST_TYPES = frozenset(
@@ -43,39 +49,43 @@ class ModuleDescriptor(object):
     https://docs.unrealengine.com/en-US/API/Runtime/Projects/FModuleDescriptor/index.html
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize a new instance of ModuleDescriptor."""
-        self.name = None
-        self.host_type = None
-        self.loading_phase = None
-        self.additional_dependencies = []
-        self.blacklist_platforms = []
-        self.blacklist_programs = []
-        self.blacklist_target_configurations = []
-        self.blacklist_targets = []
-        self.whitelist_platforms = []
-        self.whitelist_programs = []
-        self.whitelist_target_configurations = []
-        self.whitelist_targets = []
+        self.name: Optional[str] = None
+        self.host_type: Optional[str] = None
+        self.loading_phase: Optional[str] = None
+        self.additional_dependencies: List[Any] = []
+        self.blacklist_platforms: List[Any] = []
+        self.blacklist_programs: List[Any] = []
+        self.blacklist_target_configurations: List[Any] = []
+        self.blacklist_targets: List[Any] = []
+        self.whitelist_platforms: List[Any] = []
+        self.whitelist_programs: List[Any] = []
+        self.whitelist_target_configurations: List[Any] = []
+        self.whitelist_targets: List[Any] = []
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Python interpreter representation of ModuleDescriptor."""
         return f"<ModuleDescriptor {self.name}>"
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         """Provide a consistent identity."""
         return hash(self.name)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         """Provide consistent equality operation."""
+        if not isinstance(other, ModuleDescriptor):
+            return NotImplemented
         return self.name == other.name
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         """Provide consistent inequality operation."""
+        if not isinstance(other, ModuleDescriptor):
+            return NotImplemented
         return self.name != other.name
 
     @staticmethod
-    def to_object(dct):
+    def to_object(dct: Dict[str, Any]) -> Union[ModuleDescriptor, Dict[str, Any]]:
         descriptor = ModuleDescriptor()
         descriptor.name = dct.get("Name")
         descriptor.host_type = dct.get("Type", "Runtime")
@@ -97,7 +107,7 @@ class ModuleDescriptor(object):
             return descriptor
         return dct
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "Name": self.name,
             "Type": self.host_type,
@@ -112,7 +122,7 @@ class ModuleDescriptor(object):
             "WhitelistTargets": self.whitelist_targets,
         }
 
-    def is_valid(self):
+    def is_valid(self) -> bool:
         return (
             self.name is not None
             and self.name != ""

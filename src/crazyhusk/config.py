@@ -38,8 +38,8 @@ class UnrealConfigParser(configparser.RawConfigParser):
 
     RE_OPTION_SPECIALCHARS = re.compile(r"^([+-.!])")
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(strict=False)
 
-    def optionxform(self, optionstr):
+    def optionxform(self, optionstr: str) -> str:
         return UnrealConfigParser.RE_OPTION_SPECIALCHARS.sub("", optionstr)

@@ -1,18 +1,22 @@
 """Object wrappers for working with Unreal Engine installations."""
 
+# Future Standard Library
+from __future__ import annotations
+
 # Standard Library
 import glob
 import json
 import logging
 import os
 import subprocess
+from typing import Any, Dict, Iterable, List, Optional, Set
 
 try:
     # Standard Library
     from importlib.metadata import entry_points
 except ImportError:
     # Third Party
-    from importlib_metadata import entry_points
+    from importlib_metadata import entry_points  # type:ignore
 
 # CrazyHusk
 from crazyhusk.code import CodeTemplate
@@ -34,22 +38,22 @@ class UnrealExecutionError(Exception):
 class UnrealVersion(object):
     """Object wrapper representing a Build.version file."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize a new UnrealVersion."""
-        self.major = 4
-        self.minor = 0
-        self.patch = 0
-        self.changelist = 0
-        self.compatible_changelist = 0
-        self.is_licensee_version = 0
-        self.is_promoted_version = 1
-        self.branch = ""
+        self.major: int = 4
+        self.minor: int = 0
+        self.patch: int = 0
+        self.changelist: int = 0
+        self.compatible_changelist: int = 0
+        self.is_licensee_version: int = 0
+        self.is_promoted_version: int = 1
+        self.branch: str = ""
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Python interpreter representation of this instance."""
         return f"<UnrealVersion {self}>"
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Represent this instance as a string."""
         result = f"{self.major}.{self.minor}"
         if self.patch:
@@ -60,7 +64,7 @@ class UnrealVersion(object):
             result += f"+{self.branch}"
         return result
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, UnrealVersion):
             return NotImplemented
         return (
@@ -71,7 +75,7 @@ class UnrealVersion(object):
             and self.branch == other.branch
         )
 
-    def __lt__(self, other):
+    def __lt__(self, other: object) -> bool:
         if not isinstance(other, UnrealVersion):
             return NotImplemented
         if self.major < other.major:
@@ -85,7 +89,7 @@ class UnrealVersion(object):
         return False
 
     @staticmethod
-    def to_object(dct):
+    def to_object(dct: Dict[str, Any]) -> UnrealVersion:
         """Convert dictionary form to UnrealVersion object instance."""
         version = UnrealVersion()
         version.major = dct.get("MajorVersion", 4)
@@ -98,7 +102,7 @@ class UnrealVersion(object):
         version.is_promoted_version = dct.get("IsPromotedBuild", 1)
         return version
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "MajorVersion": self.major,
             "MinorVersion": self.minor,
@@ -114,33 +118,33 @@ class UnrealVersion(object):
 class UnrealEngine(object):
     """Object wrapper representing an Unreal Engine."""
 
-    def __init__(self, base_dir, association_name=None):
+    def __init__(self, base_dir: str, association_name: Optional[str] = None) -> None:
         """Initialize a new UnrealEngine."""
         if base_dir is None:
             raise UnrealEngineError("UnrealEngine base directory must not be None.")
         elif base_dir == "":
             raise UnrealEngineError("UnrealEngine base directory must not be empty.")
 
-        self.base_dir = os.path.realpath(base_dir)
-        self.association_name = association_name
-        self.__version = None
-        self.__in_context = False
-        self.__plugins = None
-        self.__process = None
-        self.__code_templates = None
+        self.base_dir: str = os.path.realpath(base_dir)
+        self.association_name: Optional[str] = association_name
+        self.__version: Optional[UnrealVersion] = None
+        self.__in_context: bool = False
+        self.__plugins: Optional[Dict[str, UnrealPlugin]] = None
+        self.__process: Optional[subprocess.Popen[str]] = None
+        self.__code_templates: Optional[Dict[str, CodeTemplate]] = None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Python interpreter representation of this instance."""
         return (
             f"<UnrealEngine {self.build_type} Build {self.version} at {self.base_dir}>"
         )
 
-    def __lt__(self, other):
+    def __lt__(self, other: object) -> bool:
         if not isinstance(other, UnrealEngine):
             return NotImplemented
         return self.version < other.version
 
-    def __enter__(self):
+    def __enter__(self) -> UnrealEngine:
         """Context wrapper entry point.
         Resets the context for running multiple processes sequentially.
         """
@@ -157,40 +161,41 @@ class UnrealEngine(object):
         self.__in_context = False
 
     @property
-    def engine_dir(self):
+    def engine_dir(self) -> str:
         """Path to this Engine's Engine directory."""
         return os.path.join(self.base_dir, "Engine")
 
     @property
-    def feature_packs_dir(self):
+    def feature_packs_dir(self) -> str:
         """Path to this Engine's FeaturePacks directory."""
         return os.path.join(self.base_dir, "FeaturePacks")
 
     @property
-    def samples_dir(self):
+    def samples_dir(self) -> str:
         """Path to this Engine's Samples directory."""
         return os.path.join(self.base_dir, "Samples")
 
     @property
-    def templates_dir(self):
+    def templates_dir(self) -> str:
         """Path to this Engine's Templates directory."""
         return os.path.join(self.base_dir, "Templates")
 
     @property
-    def build_dir(self):
+    def build_dir(self) -> str:
         """Path to this Engine's Build directory."""
         return os.path.join(self.base_dir, "Engine", "Build")
 
     @property
-    def build_type(self):
+    def build_type(self) -> Optional[str]:
         """Type of build available for this Engine."""
         if os.path.isfile(os.path.join(self.build_dir, "InstalledBuild.txt")):
             return "Installed"
         if os.path.isfile(os.path.join(self.build_dir, "SourceDistribution.txt")):
             return "Source"
+        return None
 
     @property
-    def code_templates(self):
+    def code_templates(self) -> Dict[str, CodeTemplate]:
         if self.__code_templates is None:
             self.__code_templates = {}
             items = (self, *self.plugins.values())
@@ -201,22 +206,22 @@ class UnrealEngine(object):
         return self.__code_templates
 
     @property
-    def config_dir(self):
+    def config_dir(self) -> str:
         """Path to this Engine's Config directory."""
         return os.path.join(self.base_dir, "Engine", "Config")
 
     @property
-    def content_dir(self):
+    def content_dir(self) -> str:
         """Path to this Engine's Content directory."""
         return os.path.join(self.base_dir, "Engine", "Content")
 
     @property
-    def plugins_dir(self):
+    def plugins_dir(self) -> str:
         """Path to this Engine's Plugins directory."""
         return os.path.join(self.base_dir, "Engine", "Plugins")
 
     @property
-    def plugins(self):
+    def plugins(self) -> Dict[str, UnrealPlugin]:
         if self.__plugins is None:
             self.__plugins = {}
             for _root, _dirs, _files in os.walk(self.plugins_dir):
@@ -228,7 +233,7 @@ class UnrealEngine(object):
         return self.__plugins
 
     @property
-    def version(self):
+    def version(self) -> Optional[UnrealVersion]:
         """Engine version, as UnrealVersion."""
         if self.__version is None and os.path.isfile(
             os.path.join(self.build_dir, "Build.version")
@@ -242,22 +247,23 @@ class UnrealEngine(object):
         return self.__version
 
     @staticmethod
-    def find_engine(association):
+    def find_engine(association: str) -> Optional[Any]:
         """Find an engine distribution from EngineAssociation string."""
         for entry_point in entry_points().get("crazyhusk.engine.finders", []):
             engine = entry_point.load()(association)
             if engine is not None:
                 return engine
+        return None
 
     @staticmethod
-    def list_all_engines():
+    def list_all_engines() -> Iterable[UnrealEngine]:
         """List all available engine installations."""
         for entry_point in entry_points().get("crazyhusk.engine.listers", []):
             for engine in entry_point.load()():
                 yield engine
 
     @staticmethod
-    def format_commandline_options(*switches, **parameters):
+    def format_commandline_options(*switches: str, **parameters: str) -> Iterable[str]:
         """Convert input arguments from Pythonic expansions to commandline strings."""
         for switch in set(switches):
             yield f"-{switch}"
@@ -266,14 +272,14 @@ class UnrealEngine(object):
 
     # crazyhusk.commands
     @staticmethod
-    def log_engine_list():
+    def log_engine_list() -> None:
         """Log all found engines."""
         for engine in sorted(UnrealEngine.list_all_engines()):
             logging.info(engine)
 
     # crazyhusk.code.listers
     @staticmethod
-    def list_engine_code_templates(engine):
+    def list_engine_code_templates(engine: UnrealEngine) -> Iterable[CodeTemplate]:
         if isinstance(engine, UnrealEngine):
             for template_filename in glob.iglob(
                 os.path.join(engine.content_dir, "Editor", "Templates", "*.template")
@@ -289,7 +295,7 @@ class UnrealEngine(object):
 
     # crazyhusk.engine.sanitizers
     @staticmethod
-    def engine_exe_exists(engine, executable, *args):
+    def engine_exe_exists(engine: UnrealEngine, executable: str, *args: str) -> None:
         """Raise exception if the executable is not available on disk."""
         if not isinstance(engine, UnrealEngine):
             raise TypeError(
@@ -301,7 +307,9 @@ class UnrealEngine(object):
             )
 
     @staticmethod
-    def engine_exe_common_path(engine, executable, *args):
+    def engine_exe_common_path(
+        engine: UnrealEngine, executable: str, *args: str
+    ) -> None:
         """Raise exception if the executable does not resolve to a path owned by the given engine."""
         if not isinstance(engine, UnrealEngine):
             raise TypeError(
@@ -318,7 +326,7 @@ class UnrealEngine(object):
 
     # crazyhusk.engine.validators
     @staticmethod
-    def engine_dir_exists(engine):
+    def engine_dir_exists(engine: UnrealEngine) -> None:
         """Raise exception if this instance is not available on disk."""
         if not isinstance(engine, UnrealEngine):
             raise TypeError(
@@ -327,13 +335,17 @@ class UnrealEngine(object):
         if not os.path.isdir(engine.engine_dir):
             raise UnrealEngineError("Specified engine directory does not exist.")
 
-    def config(self, config_category=None, platform=None):
+    def config(
+        self, config_category: Optional[str] = None, platform: Optional[str] = None
+    ) -> UnrealConfigParser:
         """Create a configuration object associated with this engine by category and platform."""
         _config = UnrealConfigParser()
         _config.read(self.config_files(config_category, platform))
         return _config
 
-    def config_files(self, config_category=None, platform=None):
+    def config_files(
+        self, config_category: Optional[str] = None, platform: Optional[str] = None
+    ) -> Iterable[str]:
         """Iterate configuration file paths associated with this engine by category and platform."""
         yield os.path.join(self.config_dir, "Base.ini")
         if config_category in CONFIG_CATEGORIES:
@@ -346,22 +358,23 @@ class UnrealEngine(object):
                     self.config_dir, platform, f"{platform}{config_category}.ini"
                 )
 
-    def executable_path(self, executable_name):
+    def executable_path(self, executable_name: str) -> Optional[Any]:
         """Resolve an expected real path for an executable member of this engine for a given executable name."""
         for entry_point in entry_points().get("crazyhusk.engine.resolvers", []):
             path = entry_point.load()(self, executable_name)
             if path is not None:
                 return path
+        return None
 
-    def is_installed_build(self):
+    def is_installed_build(self) -> bool:
         """Determine if this engine is an Installed distribution."""
         return os.path.isfile(os.path.join(self.build_dir, "InstalledBuild.txt"))
 
-    def is_source_build(self):
+    def is_source_build(self) -> bool:
         """Determine if this engine is a Source distribution."""
         return os.path.isfile(os.path.join(self.build_dir, "SourceDistribution.txt"))
 
-    def unreal_path_to_file_path(self, unreal_path, ext=".uasset"):
+    def unreal_path_to_file_path(self, unreal_path: str, ext: str = ".uasset") -> str:
         """Convert an Unreal object path to a file path relative to this engine."""
         path_split = unreal_path.split("/")
         if len(path_split) < 3:
@@ -383,7 +396,7 @@ class UnrealEngine(object):
             f"Can't resolve Unreal path: {unreal_path} - could not find plugin or feature pack mount {mount}."
         )
 
-    def unreal_path_from_file_path(self, file_path):
+    def unreal_path_from_file_path(self, file_path: str) -> str:
         """Convert a file path to an appropriate Unreal object path for use with this engine."""
         if (
             not os.path.commonpath([os.path.realpath(file_path), self.base_dir])
@@ -411,19 +424,21 @@ class UnrealEngine(object):
 
         raise UnrealEngineError(f"Can't resolve to Unreal path: {file_path}.")
 
-    def validate(self):
+    def validate(self) -> None:
         """Raise exceptions if this instance is misconfigured."""
         for entry_point in entry_points().get("crazyhusk.engine.validators", []):
             entry_point.load()(self)
 
-    def sanitize_commandline(self, executable, *args):
+    def sanitize_commandline(self, executable: str, *args: str) -> List[str]:
         """Raise exceptions if we are about to run unsafe commands in the subprocess."""
         for entry_point in entry_points().get("crazyhusk.engine.sanitizers", []):
             entry_point.load()(self, executable, *args)
         cmd = [executable, *args]
         return cmd
 
-    def run(self, executable, *args, expected_retcodes=None):
+    def run(
+        self, executable: str, *args: str, expected_retcodes: Optional[Set[int]] = None
+    ) -> int:
         """Run an associated Unreal executable in a subprocess, and process output line by line."""
         if not self.__in_context:
             raise UnrealExecutionError(

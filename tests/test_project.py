@@ -137,7 +137,8 @@ def test_project_descriptor_modules(project_descriptor, expected_type, request):
 def test_project_descriptor_add_module(
     basic_project_descriptor, default_valid_module_descriptor
 ):
-    assert basic_project_descriptor.add_module({}) is NotImplemented
+    with pytest.raises(NotImplementedError):
+        assert basic_project_descriptor.add_module({}) is None
     assert basic_project_descriptor.add_module(default_valid_module_descriptor) is None
 
 

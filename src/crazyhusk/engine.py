@@ -9,7 +9,7 @@ import json
 import logging
 import os
 import subprocess
-from typing import Any, Dict, Iterable, List, Optional, Set
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Union
 
 try:
     # Standard Library
@@ -130,7 +130,7 @@ class UnrealEngine(object):
         self.__version: Optional[UnrealVersion] = None
         self.__in_context: bool = False
         self.__plugins: Optional[Dict[str, UnrealPlugin]] = None
-        self.__process: Optional[subprocess.Popen[str]] = None
+        self.__process: Optional[object] = None
         self.__code_templates: Optional[Dict[str, CodeTemplate]] = None
 
     def __repr__(self) -> str:
@@ -142,6 +142,8 @@ class UnrealEngine(object):
     def __lt__(self, other: object) -> bool:
         if not isinstance(other, UnrealEngine):
             return NotImplemented
+        if self.version is None or other.version is None:
+            return NotImplemented
         return self.version < other.version
 
     def __enter__(self) -> UnrealEngine:
@@ -152,7 +154,9 @@ class UnrealEngine(object):
         self.__process = None
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self, exc_type: Optional[Any], exc_val: Optional[Any], exc_tb: Optional[Any]
+    ) -> None:
         """Context wrapper exit point.
         Ensures any running subprocesses are terminated.
         """
@@ -198,7 +202,10 @@ class UnrealEngine(object):
     def code_templates(self) -> Dict[str, CodeTemplate]:
         if self.__code_templates is None:
             self.__code_templates = {}
-            items = (self, *self.plugins.values())
+            items = [self]  # type: List[Union[UnrealEngine,UnrealPlugin]]
+            if self.plugins is not None:
+                for _plugin in self.plugins.values():
+                    items.append(_plugin)
             for entry_point in entry_points().get("crazyhusk.code.listers", []):
                 for item in items:
                     for template in entry_point.load()(item):
@@ -221,7 +228,7 @@ class UnrealEngine(object):
         return os.path.join(self.base_dir, "Engine", "Plugins")
 
     @property
-    def plugins(self) -> Dict[str, UnrealPlugin]:
+    def plugins(self) -> Optional[Dict[str, UnrealPlugin]]:
         if self.__plugins is None:
             self.__plugins = {}
             for _root, _dirs, _files in os.walk(self.plugins_dir):
@@ -374,7 +381,9 @@ class UnrealEngine(object):
         """Determine if this engine is a Source distribution."""
         return os.path.isfile(os.path.join(self.build_dir, "SourceDistribution.txt"))
 
-    def unreal_path_to_file_path(self, unreal_path: str, ext: str = ".uasset") -> str:
+    def unreal_path_to_file_path(
+        self, unreal_path: str, ext: str = ".uasset"
+    ) -> Optional[str]:
         """Convert an Unreal object path to a file path relative to this engine."""
         path_split = unreal_path.split("/")
         if len(path_split) < 3:
@@ -389,7 +398,7 @@ class UnrealEngine(object):
         if mount == "Engine":
             return os.path.join(self.content_dir, *path_split[2:]) + ext
 
-        if mount in self.plugins:
+        if self.plugins is not None and mount in self.plugins:
             return self.plugins[mount].unreal_path_to_file_path(unreal_path, ext)
 
         raise UnrealEngineError(
@@ -417,10 +426,11 @@ class UnrealEngine(object):
             )
             return f"/Engine/{sub_path}"
 
-        for plugin in self.plugins.values():
-            unreal_path = plugin.unreal_path_from_file_path(file_path)
-            if unreal_path is not None:
-                return unreal_path
+        if self.plugins is not None:
+            for plugin in self.plugins.values():
+                unreal_path = plugin.unreal_path_from_file_path(file_path)
+                if unreal_path is not None:
+                    return unreal_path
 
         raise UnrealEngineError(f"Can't resolve to Unreal path: {file_path}.")
 
@@ -466,14 +476,15 @@ class UnrealEngine(object):
             universal_newlines=True,
         )
 
-        while True:
-            output = self.__process.stdout.readline()
-            if not output and self.__process.poll() is not None:
-                break
-            output = output.strip()
-            if not output:
-                continue
-            logger.info(output)
+        if self.__process.stdout is not None:
+            while True:
+                output = self.__process.stdout.readline()
+                if not output and self.__process.poll() is not None:
+                    break
+                output = output.strip()
+                if not output:
+                    continue
+                logger.info(output)
 
         return_code = self.__process.poll()
         if return_code not in expected_retcodes:

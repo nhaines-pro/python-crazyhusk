@@ -162,7 +162,7 @@ class PluginDescriptor(object):
 
     def add_module(self, module: ModuleDescriptor) -> None:
         if not isinstance(module, ModuleDescriptor):
-            return NotImplemented
+            raise NotImplementedError()
         self.__modules.append(module)
 
 
@@ -247,9 +247,9 @@ class UnrealPlugin(object):
         self.plugin_file: str = plugin_file
         self.__descriptor: Optional[PluginDescriptor] = None
         self.__name: Optional[str] = None
-        self.__modules = None
+        self.__modules: Optional[Dict[str, ModuleDescriptor]] = None
         self.__plugin_refs: Optional[Dict[str, PluginReferenceDescriptor]] = None
-        self.__code_templates = None
+        self.__code_templates: Optional[Dict[str, CodeTemplate]] = None
 
     def __repr__(self) -> str:
         """Python interpreter representation of UnrealPlugin."""
@@ -283,7 +283,7 @@ class UnrealPlugin(object):
             self.__modules = {
                 module.name: module
                 for module in self.descriptor.modules
-                if isinstance(module, ModuleDescriptor)
+                if isinstance(module, ModuleDescriptor) and module.name is not None
             }
         return self.__modules
 
@@ -305,6 +305,7 @@ class UnrealPlugin(object):
                 plugin.name: plugin
                 for plugin in self.descriptor.plugins
                 if isinstance(plugin, PluginReferenceDescriptor)
+                and plugin.name is not None
             }
         return self.__plugin_refs
 

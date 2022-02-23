@@ -105,7 +105,7 @@ class ProjectDescriptor(object):
 
     def add_module(self, module: ModuleDescriptor) -> None:
         if not isinstance(module, ModuleDescriptor):
-            return NotImplemented
+            raise NotImplementedError()
         self.__modules.append(module.to_dict())
 
 
@@ -130,15 +130,14 @@ class UnrealProject(object):
     def code_templates(self) -> Dict[str, CodeTemplate]:
         if self.__code_templates is None:
             self.__code_templates = {}
-            if self.engine is None:
-                items = (self, *self.plugins.values())
-            else:
-                items = (
-                    self.engine,
-                    self.engine.plugins.values(),
-                    self,
-                    *self.plugins.values(),
-                )
+            items = []  # type: List[Union[UnrealProject,UnrealEngine,UnrealPlugin]]
+            if self.engine is not None:
+                items.append(self.engine)
+                if self.engine.plugins is not None and len(self.engine.plugins):
+                    items.append(*self.engine.plugins.values())
+            items.append(self)
+            if self.plugins is not None and len(self.plugins):
+                items.append(*self.plugins.values())
             for entry_point in entry_points().get("crazyhusk.code.listers", []):
                 for item in items:
                     for template in entry_point.load()(item):
@@ -160,11 +159,14 @@ class UnrealProject(object):
     @property
     def engine(self) -> Optional[UnrealEngine]:
         if self.__engine is None:
-            if self.descriptor.engine_association == "":
+            if self.descriptor is not None and self.descriptor.engine_association == "":
                 self.__engine = UnrealEngine(
                     os.path.realpath(os.path.join(self.project_file, "..", "..")), ""
                 )
-            else:
+            elif (
+                self.descriptor is not None
+                and self.descriptor.engine_association is not None
+            ):
                 self.__engine = UnrealEngine.find_engine(
                     self.descriptor.engine_association
                 )
@@ -198,17 +200,18 @@ class UnrealProject(object):
         return os.path.join(self.project_dir, "Plugins")
 
     @property
-    def modules(self) -> Dict[str, ModuleDescriptor]:
+    def modules(self) -> Optional[Dict[str, ModuleDescriptor]]:
         if self.__modules is None:
-            self.__modules = {
-                module.name: module
-                for module in self.descriptor.modules
-                if isinstance(module, ModuleDescriptor)
-            }
+            if self.descriptor is not None:
+                self.__modules = {
+                    module.name: module
+                    for module in self.descriptor.modules
+                    if isinstance(module, ModuleDescriptor) and module.name is not None
+                }
         return self.__modules
 
     @property
-    def plugins(self) -> Dict[str, UnrealPlugin]:
+    def plugins(self) -> Optional[Dict[str, UnrealPlugin]]:
         if self.__plugins is None:
             if self.engine is None:
                 self.__plugins = {}
@@ -219,7 +222,8 @@ class UnrealProject(object):
                 for _file in _files:
                     if os.path.splitext(_file)[-1] == ".uplugin":
                         plugin = UnrealPlugin(os.path.join(_root, _file))
-                        self.__plugins[plugin.name] = plugin
+                        if self.__plugins is not None and plugin.name is not None:
+                            self.__plugins[plugin.name] = plugin
                         break
         return self.__plugins
 
@@ -289,7 +293,9 @@ class UnrealProject(object):
                     self.config_dir, platform, f"{platform}{config_category}.ini"
                 )
 
-    def unreal_path_to_file_path(self, unreal_path: str, ext: str = ".uasset") -> str:
+    def unreal_path_to_file_path(
+        self, unreal_path: str, ext: str = ".uasset"
+    ) -> Optional[str]:
         """Convert an Unreal object path to a file path relative to this project."""
         path_split = unreal_path.split("/")
         if len(path_split) < 3:
@@ -306,7 +312,7 @@ class UnrealProject(object):
                 )
             return os.path.join(self.engine.content_dir, *path_split[2:]) + ext
 
-        if mount in self.plugins:
+        if self.plugins is not None and mount in self.plugins:
             return self.plugins[mount].unreal_path_to_file_path(unreal_path, ext)
 
         raise UnrealProjectError(
@@ -340,10 +346,11 @@ class UnrealProject(object):
             )
             return f"/Engine/{sub_path}"
 
-        for plugin in self.plugins.values():
-            unreal_path = plugin.unreal_path_from_file_path(file_path)
-            if unreal_path is not None:
-                return unreal_path
+        if self.plugins is not None:
+            for plugin in self.plugins.values():
+                unreal_path = plugin.unreal_path_from_file_path(file_path)
+                if unreal_path is not None:
+                    return unreal_path
         return None
 
     def validate(self) -> None:

@@ -156,7 +156,8 @@ def test_plugin_descriptor_modules(plugin_descriptor, expected_type, request):
 def test_plugin_descriptor_add_module(
     basic_plugin_descriptor, default_valid_module_descriptor
 ):
-    assert basic_plugin_descriptor.add_module({}) is NotImplemented
+    with pytest.raises(NotImplementedError):
+        assert basic_plugin_descriptor.add_module({}) is None
     assert basic_plugin_descriptor.add_module(default_valid_module_descriptor) is None
 
 

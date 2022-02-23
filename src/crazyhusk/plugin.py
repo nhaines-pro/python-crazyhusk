@@ -11,7 +11,7 @@ from typing import Any, Dict, Iterable, List, Optional, Union
 
 try:
     # Standard Library
-    from importlib.metadata import entry_points
+    from importlib.metadata import entry_points  # type:ignore
 except ImportError:
     # Third Party
     from importlib_metadata import entry_points  # type:ignore

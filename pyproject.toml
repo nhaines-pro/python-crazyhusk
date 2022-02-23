@@ -31,6 +31,7 @@ exclude_lines = ["if __name__ == .__main__.:"]
 files = "src/**/*.py"
 strict = true
 warn_unreachable = true
+warn_unused_ignores = false
 pretty = true
 show_column_numbers = true
 show_error_codes = true

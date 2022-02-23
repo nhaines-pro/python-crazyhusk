@@ -4,7 +4,14 @@ import calendar
 import logging
 import re
 from datetime import datetime
-from typing import Any, Literal
+from typing import Any
+
+try:
+    # Standard Library
+    from typing import Literal  # type:ignore
+except ImportError:
+    # Third Party
+    from typing_extensions import Literal  # type:ignore
 
 # Regular expression for capturing data from UE4 logs
 RE_UE4_LOG_LINE = re.compile(

@@ -21,6 +21,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install Dependencies
-        run: python -m pip install --upgrade mypy
+        run: python -m pip install --upgrade mypy importlib_metadata typing_extensions
       - name: Test with MyPy
         run: mypy --python-version ${{ matrix.python-version }}

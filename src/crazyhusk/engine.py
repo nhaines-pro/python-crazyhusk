@@ -254,11 +254,11 @@ class UnrealEngine(object):
         return self.__version
 
     @staticmethod
-    def find_engine(association: str) -> Optional[Any]:
+    def find_engine(association: str) -> Optional[UnrealEngine]:
         """Find an engine distribution from EngineAssociation string."""
         for entry_point in entry_points().get("crazyhusk.engine.finders", []):
             engine = entry_point.load()(association)
-            if engine is not None:
+            if isinstance(engine, UnrealEngine):
                 return engine
         return None
 
@@ -365,12 +365,12 @@ class UnrealEngine(object):
                     self.config_dir, platform, f"{platform}{config_category}.ini"
                 )
 
-    def executable_path(self, executable_name: str) -> Optional[Any]:
+    def executable_path(self, executable_name: str) -> Optional[str]:
         """Resolve an expected real path for an executable member of this engine for a given executable name."""
         for entry_point in entry_points().get("crazyhusk.engine.resolvers", []):
             path = entry_point.load()(self, executable_name)
             if path is not None:
-                return path
+                return str(path)
         return None
 
     def is_installed_build(self) -> bool:

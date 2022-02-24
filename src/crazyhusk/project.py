@@ -232,6 +232,11 @@ class UnrealProject(object):
         """Get the project's Saved directory."""
         return os.path.join(self.project_dir, "Saved")
 
+    @property
+    def reports_dir(self) -> str:
+        """Get the project's default Reports directory."""
+        return os.path.join(self.project_dir, "Saved", "Reports")
+
     # crazyhusk.code.listers
     @staticmethod
     def list_project_code_templates(project: UnrealProject) -> Iterable[CodeTemplate]:

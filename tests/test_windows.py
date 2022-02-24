@@ -12,7 +12,7 @@ from crazyhusk.windows import engine
 
 
 @pytest.fixture(scope="function")
-def basic_datfile(tmp_path:Any)->Iterable[str]:
+def basic_datfile(tmp_path: Any) -> Iterable[str]:
     yield json.dumps(
         {
             "InstallationList": [
@@ -30,11 +30,11 @@ def basic_datfile(tmp_path:Any)->Iterable[str]:
 
 
 @pytest.fixture(scope="function")
-def engine_local()->engine.UnrealEngine:
+def engine_local() -> engine.UnrealEngine:
     yield engine.UnrealEngine(".")
 
 
-def test_find_egl_engine_windows_no_datfile(tmp_path:Any, monkeypatch:Any)->None:
+def test_find_egl_engine_windows_no_datfile(tmp_path: Any, monkeypatch: Any) -> None:
     dat_file = tmp_path / "LauncherInstalled.dat"
     engine.DAT_FILE = dat_file
     monkeypatch.setattr("platform.system", lambda: "NotWindows")
@@ -43,7 +43,9 @@ def test_find_egl_engine_windows_no_datfile(tmp_path:Any, monkeypatch:Any)->None
     assert engine.find_egl_engine_windows("") is None
 
 
-def test_find_egl_engine_windows_with_datfile(basic_datfile:str, tmp_path:Any, monkeypatch:Any)->None:
+def test_find_egl_engine_windows_with_datfile(
+    basic_datfile: str, tmp_path: Any, monkeypatch: Any
+) -> None:
     dat_file = tmp_path / "LauncherInstalled.dat"
     dat_file.write_text(basic_datfile)
     engine.DAT_FILE = dat_file
@@ -56,7 +58,7 @@ def test_find_egl_engine_windows_with_datfile(basic_datfile:str, tmp_path:Any, m
     assert engine.find_egl_engine_windows("4.27") is None
 
 
-def test_list_egl_engine_windows_no_datfile(tmp_path:Any, monkeypatch:Any)->None:
+def test_list_egl_engine_windows_no_datfile(tmp_path: Any, monkeypatch: Any) -> None:
     dat_file = tmp_path / "LauncherInstalled.dat"
     engine.DAT_FILE = dat_file
     monkeypatch.setattr("platform.system", lambda: "NotWindows")
@@ -67,7 +69,9 @@ def test_list_egl_engine_windows_no_datfile(tmp_path:Any, monkeypatch:Any)->None
         assert _engine is None
 
 
-def test_list_egl_engine_windows_with_datfile(basic_datfile:str, tmp_path:Any, monkeypatch:Any)->None:
+def test_list_egl_engine_windows_with_datfile(
+    basic_datfile: str, tmp_path: Any, monkeypatch: Any
+) -> None:
     dat_file = tmp_path / "LauncherInstalled.dat"
     dat_file.write_text(basic_datfile)
     engine.DAT_FILE = dat_file
@@ -79,19 +83,21 @@ def test_list_egl_engine_windows_with_datfile(basic_datfile:str, tmp_path:Any, m
         assert isinstance(_engine, UnrealEngine)
 
 
-def test_registry_nonwindows(monkeypatch:Any)->None:
+def test_registry_nonwindows(monkeypatch: Any) -> None:
     monkeypatch.setattr("platform.system", lambda: "NotWindows")
     assert engine.find_registered_engines_windows("random_string") is None
     assert len(list(engine.list_registered_engines_windows())) == 0
 
 
-def test_registry_windows(monkeypatch:Any)->None:
+def test_registry_windows(monkeypatch: Any) -> None:
     monkeypatch.setattr("platform.system", lambda: "Windows")
     assert engine.find_registered_engines_windows("random_string") is None
     assert len(list(engine.list_registered_engines_windows())) == 0
 
 
-def test_resolve_executable_path_windows(monkeypatch:Any, engine_local:engine.UnrealEngine)->None:
+def test_resolve_executable_path_windows(
+    monkeypatch: Any, engine_local: engine.UnrealEngine
+) -> None:
     monkeypatch.setattr("platform.system", lambda: "NotWindows")
     assert engine.resolve_executable_path_windows(None, None) is None
     monkeypatch.setattr("platform.system", lambda: "Windows")

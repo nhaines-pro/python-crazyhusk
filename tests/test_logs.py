@@ -46,7 +46,12 @@ def multi_arg_filter_engine_run() -> logs.FilterEngineRun:
         ),
     ],
 )
-def test_filter_engine_run_init(filter_engine_run_fixture:str, executable:Optional[str], cmd_args:Tuple[str], request:Any) -> None:
+def test_filter_engine_run_init(
+    filter_engine_run_fixture: str,
+    executable: Optional[str],
+    cmd_args: Tuple[str],
+    request: Any,
+) -> None:
     filter_engine_run = request.getfixturevalue(filter_engine_run_fixture)
     assert filter_engine_run.executable == executable
     assert isinstance(filter_engine_run.cmd_args, tuple)
@@ -71,7 +76,11 @@ def test_filter_engine_run_init(filter_engine_run_fixture:str, executable:Option
     ],
 )
 def test_filter_engine_run_filter(
-    filter_engine_run_fixture:str, executable:Optional[str], cmd_args:Tuple[str], request:Any, caplog:Any
+    filter_engine_run_fixture: str,
+    executable: Optional[str],
+    cmd_args: Tuple[str],
+    request: Any,
+    caplog: Any,
 ) -> None:
     filter_engine_run = request.getfixturevalue(filter_engine_run_fixture)
     logger = logging.getLogger("test_filter_engine_run_filter")
@@ -117,7 +126,14 @@ def test_filter_engine_run_filter(
     ],
 )
 def test_filter_ubt_warnings(
-    log_string:str, levelno:int, levelname:str, filename:Optional[str], linenumber:Optional[str], colnumber:Optional[str], sub_msg:Optional[str], caplog:Any
+    log_string: str,
+    levelno: int,
+    levelname: str,
+    filename: Optional[str],
+    linenumber: Optional[str],
+    colnumber: Optional[str],
+    sub_msg: Optional[str],
+    caplog: Any,
 ) -> None:
     logger = logging.getLogger("test_filter_ubt_warnings")
     logger.addFilter(logs.FilterUBTWarnings())
@@ -157,7 +173,13 @@ def test_filter_ubt_warnings(
     ],
 )
 def test_filter_ue4_logs(
-    log_string:str, levelno:int, levelname:str, created:Optional[int], module:Optional[str], sub_msg:Optional[str], caplog:Any
+    log_string: str,
+    levelno: int,
+    levelname: str,
+    created: Optional[int],
+    module: Optional[str],
+    sub_msg: Optional[str],
+    caplog: Any,
 ) -> None:
     logger = logging.getLogger("test_filter_ue4_logs")
     logger.addFilter(logs.FilterUE4Logs())

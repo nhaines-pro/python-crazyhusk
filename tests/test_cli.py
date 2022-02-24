@@ -25,7 +25,7 @@ def test_set_subcommand_arguments_types() -> None:
         argparse.ArgumentParser,
     )
 
-    def subcommand_nodefaults(arg:Any) -> None:
+    def subcommand_nodefaults(arg: Any) -> None:
         pass
 
     assert isinstance(
@@ -33,7 +33,7 @@ def test_set_subcommand_arguments_types() -> None:
         argparse.ArgumentParser,
     )
 
-    def subcommand_default_none(arg:Optional[Any]=None) -> None:
+    def subcommand_default_none(arg: Optional[Any] = None) -> None:
         pass
 
     assert isinstance(
@@ -43,7 +43,7 @@ def test_set_subcommand_arguments_types() -> None:
         argparse.ArgumentParser,
     )
 
-    def subcommand_default_tuple(arg:Any=()) -> None:
+    def subcommand_default_tuple(arg: Any = ()) -> None:
         pass
 
     assert isinstance(
@@ -53,7 +53,7 @@ def test_set_subcommand_arguments_types() -> None:
         argparse.ArgumentParser,
     )
 
-    def subcommand_default_list(arg:Any=[]) -> None:
+    def subcommand_default_list(arg: Any = []) -> None:
         pass
 
     assert isinstance(
@@ -63,7 +63,7 @@ def test_set_subcommand_arguments_types() -> None:
         argparse.ArgumentParser,
     )
 
-    def subcommand_default_true(arg:Any=True) -> None:
+    def subcommand_default_true(arg: Any = True) -> None:
         pass
 
     assert isinstance(
@@ -73,7 +73,7 @@ def test_set_subcommand_arguments_types() -> None:
         argparse.ArgumentParser,
     )
 
-    def subcommand_default_false(arg:Any=False) -> None:
+    def subcommand_default_false(arg: Any = False) -> None:
         pass
 
     assert isinstance(
@@ -83,7 +83,7 @@ def test_set_subcommand_arguments_types() -> None:
         argparse.ArgumentParser,
     )
 
-    def subcommand_default_string(arg:Any="") -> None:
+    def subcommand_default_string(arg: Any = "") -> None:
         pass
 
     assert isinstance(
@@ -102,7 +102,7 @@ class test_entry_point:
     def __init__(self) -> None:
         self.name = "test"
 
-    def load(*args:Any) -> Callable[[],None]:
+    def load(*args: Any) -> Callable[[], None]:
         return test
 
 
@@ -110,7 +110,7 @@ class null_entry_point:
     def __init__(self) -> None:
         self.name = "test"
 
-    def load(*args:Any) -> None:
+    def load(*args: Any) -> None:
         return None
 
 
@@ -124,7 +124,9 @@ class null_entry_point:
         (["test"], None),
     ],
 )
-def test_parse_cli_args(args:Optional[List[str]], raises:Optional[Type[BaseException]]) -> None:
+def test_parse_cli_args(
+    args: Optional[List[str]], raises: Optional[Type[BaseException]]
+) -> None:
     cli.entry_points = lambda: {"crazyhusk.commands": [test_entry_point()]}
     if raises is not None:
         with pytest.raises(raises):
@@ -154,10 +156,12 @@ def test_parse_cli_args_entry_points() -> None:
         ([], (cli.CommandError, SystemExit)),
         (["test-command"], (cli.CommandError, SystemExit)),
         ([""], (cli.CommandError, SystemExit)),
-        (["test"], None)
+        (["test"], None),
     ],
 )
-def test_cli_run(args:Optional[List[str]], raises:Optional[Tuple[Type[BaseException]]]) -> None:
+def test_cli_run(
+    args: Optional[List[str]], raises: Optional[Tuple[Type[BaseException]]]
+) -> None:
     cli.entry_points = lambda: {"crazyhusk.commands": [test_entry_point()]}
     if raises is not None:
         with pytest.raises(raises):

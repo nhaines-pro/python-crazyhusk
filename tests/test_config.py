@@ -14,7 +14,7 @@ def empty_parser() -> config.UnrealConfigParser:
     yield config.UnrealConfigParser()
 
 
-def test_config_init(empty_parser:config.UnrealConfigParser) -> None:
+def test_config_init(empty_parser: config.UnrealConfigParser) -> None:
     assert isinstance(empty_parser, configparser.RawConfigParser)
 
 
@@ -28,5 +28,7 @@ def test_config_init(empty_parser:config.UnrealConfigParser) -> None:
         ("!AxisConfig", "AxisConfig"),
     ],
 )
-def test_config_optionxform(empty_parser:config.UnrealConfigParser, input_string:str, output_string:str) -> None:
+def test_config_optionxform(
+    empty_parser: config.UnrealConfigParser, input_string: str, output_string: str
+) -> None:
     assert empty_parser.optionxform(input_string) == output_string

@@ -2,7 +2,7 @@
 import json
 import os
 import types
-from typing import Any, Callable, Iterable, Dict, Type, Optional
+from typing import Any, Callable, Dict, Iterable, Optional, Type
 
 # Third Party
 import pytest
@@ -12,19 +12,19 @@ from crazyhusk import code, config, engine, module, plugin, project
 
 
 @pytest.fixture(scope="function")
-def null_association_project_descriptor()->project.ProjectDescriptor:
+def null_association_project_descriptor() -> project.ProjectDescriptor:
     yield project.ProjectDescriptor()
 
 
 @pytest.fixture(scope="function")
-def empty_association_project_descriptor()->project.ProjectDescriptor:
+def empty_association_project_descriptor() -> project.ProjectDescriptor:
     _project = project.ProjectDescriptor()
     _project.engine_association = ""
     yield _project
 
 
 @pytest.fixture(scope="function")
-def basic_project_descriptor()->project.ProjectDescriptor:
+def basic_project_descriptor() -> project.ProjectDescriptor:
     _project = project.ProjectDescriptor()
     _project.description = "Basic"
     _project.engine_association = ""
@@ -32,7 +32,7 @@ def basic_project_descriptor()->project.ProjectDescriptor:
 
 
 @pytest.fixture(scope="function")
-def default_valid_module_descriptor()->module.ModuleDescriptor:
+def default_valid_module_descriptor() -> module.ModuleDescriptor:
     descriptor = module.ModuleDescriptor()
     descriptor.name = "DefaultValid"
     descriptor.host_type = "Runtime"
@@ -42,22 +42,24 @@ def default_valid_module_descriptor()->module.ModuleDescriptor:
 
 @pytest.fixture(scope="function")
 def basic_project_descriptor_withmodule(
-    basic_project_descriptor:project.ProjectDescriptor, default_valid_module_descriptor:module.ModuleDescriptor
-)->project.ProjectDescriptor:
+    basic_project_descriptor: project.ProjectDescriptor,
+    default_valid_module_descriptor: module.ModuleDescriptor,
+) -> project.ProjectDescriptor:
     basic_project_descriptor.add_module(default_valid_module_descriptor)
     yield basic_project_descriptor
 
 
 @pytest.fixture(scope="function")
 def basic_project_descriptor_withmodule_dict(
-    basic_project_descriptor:project.ProjectDescriptor, default_valid_module_descriptor:module.ModuleDescriptor
-)->Iterable[Dict[str,Any]]:
+    basic_project_descriptor: project.ProjectDescriptor,
+    default_valid_module_descriptor: module.ModuleDescriptor,
+) -> Iterable[Dict[str, Any]]:
     dct = basic_project_descriptor.to_dict()
     dct["Modules"].append(default_valid_module_descriptor.to_dict())
     yield dct
 
 
-def test(*args:Any)->None:
+def test(*args: Any) -> None:
     return
 
 
@@ -65,7 +67,7 @@ class test_entry_point:
     def __init__(self) -> None:
         self.name = "test"
 
-    def load(*args:Any)->Callable[[],None]:
+    def load(*args: Any) -> Callable[[], None]:
         return test
 
 
@@ -73,11 +75,13 @@ class null_entry_point:
     def __init__(self) -> None:
         self.name = "test"
 
-    def load(*args:Any)->None:
+    def load(*args: Any) -> None:
         return None
 
 
-def test_project_descriptor_init(null_association_project_descriptor:project.ProjectDescriptor)->None:
+def test_project_descriptor_init(
+    null_association_project_descriptor: project.ProjectDescriptor,
+) -> None:
     assert null_association_project_descriptor.engine_association is None
     assert null_association_project_descriptor.category == ""
     assert null_association_project_descriptor.description == ""
@@ -92,7 +96,9 @@ def test_project_descriptor_init(null_association_project_descriptor:project.Pro
     assert isinstance(null_association_project_descriptor.plugins, types.GeneratorType)
 
 
-def test_project_descriptor_repr(null_association_project_descriptor:project.ProjectDescriptor)->None:
+def test_project_descriptor_repr(
+    null_association_project_descriptor: project.ProjectDescriptor,
+) -> None:
     assert repr(null_association_project_descriptor) == "<ProjectDescriptor >"
 
 
@@ -104,15 +110,17 @@ def test_project_descriptor_repr(null_association_project_descriptor:project.Pro
         ("basic_project_descriptor", project.ProjectDescriptor),
     ],
 )
-def test_project_descriptor_to_object(project_descriptor_fixture:str, expected_type:Type[Any], request:Any)->None:
+def test_project_descriptor_to_object(
+    project_descriptor_fixture: str, expected_type: Type[Any], request: Any
+) -> None:
     project_descriptor = request.getfixturevalue(project_descriptor_fixture)
     dct = project_descriptor.to_dict()
     assert isinstance(project.ProjectDescriptor.to_object(dct), expected_type)
 
 
 def test_project_descriptor_to_object_module_dict(
-    basic_project_descriptor_withmodule_dict:Dict[str,Any],
-)->None:
+    basic_project_descriptor_withmodule_dict: Dict[str, Any],
+) -> None:
     _project = project.ProjectDescriptor.to_object(
         basic_project_descriptor_withmodule_dict
     )
@@ -129,15 +137,18 @@ def test_project_descriptor_to_object_module_dict(
         ("basic_project_descriptor", project.ProjectDescriptor),
     ],
 )
-def test_project_descriptor_modules(project_descriptor_fixture:str, expected_type:Type[Any], request:Any)->None:
+def test_project_descriptor_modules(
+    project_descriptor_fixture: str, expected_type: Type[Any], request: Any
+) -> None:
     project_descriptor = request.getfixturevalue(project_descriptor_fixture)
     for _module in project_descriptor.modules:
         assert isinstance(_module, expected_type)
 
 
 def test_project_descriptor_add_module(
-    basic_project_descriptor:project.ProjectDescriptor, default_valid_module_descriptor:module.ModuleDescriptor
-)->None:
+    basic_project_descriptor: project.ProjectDescriptor,
+    default_valid_module_descriptor: module.ModuleDescriptor,
+) -> None:
     with pytest.raises(NotImplementedError):
         assert basic_project_descriptor.add_module({}) is None
     assert basic_project_descriptor.add_module(default_valid_module_descriptor) is None
@@ -147,34 +158,34 @@ def test_project_descriptor_add_module(
 
 
 @pytest.fixture(scope="function")
-def null_filename_unreal_project()->project.UnrealProject:
+def null_filename_unreal_project() -> project.UnrealProject:
     yield project.UnrealProject(None)
 
 
 @pytest.fixture(scope="function")
-def empty_filename_unreal_project()->project.UnrealProject:
+def empty_filename_unreal_project() -> project.UnrealProject:
     yield project.UnrealProject("")
 
 
 @pytest.fixture(scope="function")
-def invalid_filename_unreal_project()->project.UnrealProject:
+def invalid_filename_unreal_project() -> project.UnrealProject:
     yield project.UnrealProject("MyProject.txt")
 
 
 @pytest.fixture(scope="function")
-def empty_file_unreal_project()->project.UnrealProject:
+def empty_file_unreal_project() -> project.UnrealProject:
     yield project.UnrealProject("MyProject.uproject")
 
 
 @pytest.fixture(scope="function")
-def empty_file_content_unreal_project(tmp_path:Any)->project.UnrealProject:
+def empty_file_content_unreal_project(tmp_path: Any) -> project.UnrealProject:
     project_file = tmp_path / "MyProject.uproject"
     project_file.write_text("")
     yield project.UnrealProject(project_file)
 
 
 @pytest.fixture(scope="function")
-def null_engine_unreal_project(tmp_path:Any)->project.UnrealProject:
+def null_engine_unreal_project(tmp_path: Any) -> project.UnrealProject:
     project.entry_points = lambda: {}
     project_file = tmp_path / "MyProject.uproject"
     project_file.write_text('{"EngineAssociation":"123456"}')
@@ -184,14 +195,18 @@ def null_engine_unreal_project(tmp_path:Any)->project.UnrealProject:
 
 
 @pytest.fixture(scope="function")
-def basic_unreal_project(tmp_path:Any, basic_project_descriptor_withmodule_dict:Iterable[Dict[str,Any]])->project.UnrealProject:
+def basic_unreal_project(
+    tmp_path: Any, basic_project_descriptor_withmodule_dict: Iterable[Dict[str, Any]]
+) -> project.UnrealProject:
     project_file = tmp_path / "MyProject.uproject"
     project_file.write_text(json.dumps(basic_project_descriptor_withmodule_dict))
     yield project.UnrealProject(project_file)
 
 
 @pytest.fixture(scope="function")
-def basic_unreal_project_realpath(basic_project_descriptor_withmodule_dict:Iterable[Dict[str,Any]])->project.UnrealProject:
+def basic_unreal_project_realpath(
+    basic_project_descriptor_withmodule_dict: Iterable[Dict[str, Any]]
+) -> project.UnrealProject:
     project_file = os.path.realpath("./MyProject.uproject")
     engine_dir = os.path.realpath("../Engine")
     os.makedirs(engine_dir, exist_ok=True)
@@ -211,7 +226,9 @@ def basic_unreal_project_realpath(basic_project_descriptor_withmodule_dict:Itera
         ("empty_file_unreal_project", None),
     ],
 )
-def test_unreal_project_init_args(unreal_project_fixture:str, raises:Optional[Type[BaseException]], request:Any)->None:
+def test_unreal_project_init_args(
+    unreal_project_fixture: str, raises: Optional[Type[BaseException]], request: Any
+) -> None:
     if raises is not None:
         with pytest.raises(raises):
             assert request.getfixturevalue(unreal_project_fixture) is not None
@@ -219,19 +236,21 @@ def test_unreal_project_init_args(unreal_project_fixture:str, raises:Optional[Ty
         assert request.getfixturevalue(unreal_project_fixture) is not None
 
 
-def test_unreal_project_init(empty_file_unreal_project:project.UnrealProject)->None:
+def test_unreal_project_init(empty_file_unreal_project: project.UnrealProject) -> None:
     assert empty_file_unreal_project.project_file == "MyProject.uproject"
     assert empty_file_unreal_project.name == "MyProject"
 
 
-def test_unreal_project_repr(empty_file_unreal_project:project.UnrealProject)->None:
+def test_unreal_project_repr(empty_file_unreal_project: project.UnrealProject) -> None:
     assert (
         repr(empty_file_unreal_project)
         == "<UnrealProject MyProject at MyProject.uproject>"
     )
 
 
-def test_unreal_project_properties(empty_file_unreal_project:project.UnrealProject)->None:
+def test_unreal_project_properties(
+    empty_file_unreal_project: project.UnrealProject,
+) -> None:
     assert empty_file_unreal_project.project_dir == ""
     assert empty_file_unreal_project.config_dir == "Config"
     assert empty_file_unreal_project.content_dir == "Content"
@@ -247,7 +266,9 @@ def test_unreal_project_properties(empty_file_unreal_project:project.UnrealProje
         ("empty_file_content_unreal_project", None),
     ],
 )
-def test_unreal_project_file_exists(unreal_project_fixture:str, raises:Optional[Type[BaseException]], request:Any)->None:
+def test_unreal_project_file_exists(
+    unreal_project_fixture: str, raises: Optional[Type[BaseException]], request: Any
+) -> None:
     unreal_project = request.getfixturevalue(unreal_project_fixture)
     if raises is not None:
         with pytest.raises(raises):
@@ -256,7 +277,7 @@ def test_unreal_project_file_exists(unreal_project_fixture:str, raises:Optional[
         assert project.UnrealProject.project_file_exists(unreal_project) is None
 
 
-def test_unreal_project_file_exists_types()->None:
+def test_unreal_project_file_exists_types() -> None:
     with pytest.raises(TypeError):
         assert project.UnrealProject.project_file_exists(None) is None
 
@@ -269,7 +290,9 @@ def test_unreal_project_file_exists_types()->None:
         ("empty_file_content_unreal_project", None),
     ],
 )
-def test_unreal_project_valid_project_file_extension(unreal_project_fixture:str, raises:Optional[Type[BaseException]], request:Any)->None:
+def test_unreal_project_valid_project_file_extension(
+    unreal_project_fixture: str, raises: Optional[Type[BaseException]], request: Any
+) -> None:
     unreal_project = request.getfixturevalue(unreal_project_fixture)
     if raises is not None:
         with pytest.raises(raises):
@@ -283,7 +306,7 @@ def test_unreal_project_valid_project_file_extension(unreal_project_fixture:str,
         )
 
 
-def test_unreal_project_valid_project_file_extension_types()->None:
+def test_unreal_project_valid_project_file_extension_types() -> None:
     with pytest.raises(TypeError):
         assert project.UnrealProject.valid_project_file_extension(None) is None
 
@@ -294,14 +317,16 @@ def test_unreal_project_valid_project_file_extension_types()->None:
         ("basic_unreal_project", module.ModuleDescriptor),
     ],
 )
-def test_unreal_project_modules(unreal_project_fixture:str, expected_type:Type[Any], request:Any)->None:
+def test_unreal_project_modules(
+    unreal_project_fixture: str, expected_type: Type[Any], request: Any
+) -> None:
     unreal_project = request.getfixturevalue(unreal_project_fixture)
     for _name, _module in unreal_project.modules.items():
         assert isinstance(_name, str)
         assert isinstance(_module, expected_type)
 
 
-def test_unreal_project_descriptor(basic_unreal_project:project.UnrealProject)->None:
+def test_unreal_project_descriptor(basic_unreal_project: project.UnrealProject) -> None:
     project.entry_points = lambda: {}
     assert isinstance(basic_unreal_project.descriptor, project.ProjectDescriptor)
 
@@ -332,8 +357,11 @@ def test_unreal_project_descriptor(basic_unreal_project:project.UnrealProject)->
     ],
 )
 def test_unreal_path_to_file_path(
-    unreal_path:str, raises:Optional[Type[BaseException]], expected:Optional[str], basic_unreal_project_realpath:project.UnrealProject
-)->None:
+    unreal_path: str,
+    raises: Optional[Type[BaseException]],
+    expected: Optional[str],
+    basic_unreal_project_realpath: project.UnrealProject,
+) -> None:
     if raises:
         with pytest.raises(raises):
             assert (
@@ -371,8 +399,11 @@ def test_unreal_path_to_file_path(
     ],
 )
 def test_unreal_path_from_file_path(
-    file_path:str, raises:Optional[Type[BaseException]], expected:Optional[str], basic_unreal_project_realpath:project.UnrealProject
-)->None:
+    file_path: str,
+    raises: Optional[Type[BaseException]],
+    expected: Optional[str],
+    basic_unreal_project_realpath: project.UnrealProject,
+) -> None:
     if raises:
         with pytest.raises(raises):
             assert (
@@ -386,13 +417,17 @@ def test_unreal_path_from_file_path(
         )
 
 
-def test_unreal_project_plugins(basic_unreal_project_realpath:project.UnrealProject)->None:
+def test_unreal_project_plugins(
+    basic_unreal_project_realpath: project.UnrealProject,
+) -> None:
     for _name, _plugin in basic_unreal_project_realpath.plugins.items():
         assert isinstance(_name, str)
         assert isinstance(_plugin, plugin.UnrealPlugin)
 
 
-def test_unreal_project_code_templates(basic_unreal_project_realpath:project.UnrealProject)->None:
+def test_unreal_project_code_templates(
+    basic_unreal_project_realpath: project.UnrealProject,
+) -> None:
     project.entry_points = lambda: {}
     for _name, _plugin in basic_unreal_project_realpath.code_templates.items():
         assert isinstance(_name, str)
@@ -408,8 +443,11 @@ def test_unreal_project_code_templates(basic_unreal_project_realpath:project.Unr
     ],
 )
 def test_unreal_project_config_files(
-    basic_unreal_project_realpath:project.UnrealProject, category:Optional[str], platform:Optional[str], expected:int
-)->None:
+    basic_unreal_project_realpath: project.UnrealProject,
+    category: Optional[str],
+    platform: Optional[str],
+    expected: int,
+) -> None:
     assert (
         len(list(basic_unreal_project_realpath.config_files(category, platform)))
         == expected
@@ -417,22 +455,26 @@ def test_unreal_project_config_files(
 
 
 def test_unreal_project_config(
-    basic_unreal_project_realpath:project.UnrealProject, empty_file_unreal_project:project.UnrealProject
-)->None:
+    basic_unreal_project_realpath: project.UnrealProject,
+    empty_file_unreal_project: project.UnrealProject,
+) -> None:
     project.entry_points = lambda: {}
     assert isinstance(basic_unreal_project_realpath.config(), config.UnrealConfigParser)
     assert isinstance(empty_file_unreal_project.config(), config.UnrealConfigParser)
 
 
 def test_unreal_project_engine(
-    basic_unreal_project_realpath:project.UnrealProject, null_engine_unreal_project:project.UnrealProject
-)->None:
+    basic_unreal_project_realpath: project.UnrealProject,
+    null_engine_unreal_project: project.UnrealProject,
+) -> None:
     project.entry_points = lambda: {}
     assert isinstance(basic_unreal_project_realpath.engine, engine.UnrealEngine)
     assert null_engine_unreal_project.engine is None
 
 
-def test_unreal_project_list_project_code_templates(basic_unreal_project_realpath:project.UnrealProject)->None:
+def test_unreal_project_list_project_code_templates(
+    basic_unreal_project_realpath: project.UnrealProject,
+) -> None:
     assert (
         len(
             list(

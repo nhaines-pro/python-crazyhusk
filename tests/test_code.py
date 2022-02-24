@@ -1,5 +1,7 @@
-# Third Party
+# Standard Library
 from typing import Any, Optional, Set, Type
+
+# Third Party
 import pytest
 
 # CrazyHusk
@@ -53,7 +55,13 @@ def multiline_multitoken_code_template() -> code.CodeTemplate:
         ),
     ],
 )
-def test_codetemplate_init(code_template_fixture:str, name:Optional[str], template_string:str, tokens:Set[str], request:Any) -> None:
+def test_codetemplate_init(
+    code_template_fixture: str,
+    name: Optional[str],
+    template_string: str,
+    tokens: Set[str],
+    request: Any,
+) -> None:
     code_template = request.getfixturevalue(code_template_fixture)
     assert code_template.name == name
     assert code_template.template_string == template_string
@@ -83,7 +91,13 @@ def test_codetemplate_init(code_template_fixture:str, name:Optional[str], templa
         ),
     ],
 )
-def test_codetemplate_make_instance(code_template_fixture:str, tokens:Set[str], raises:Optional[Type[BaseException]], expected:str, request:Any) -> None:
+def test_codetemplate_make_instance(
+    code_template_fixture: str,
+    tokens: Set[str],
+    raises: Optional[Type[BaseException]],
+    expected: str,
+    request: Any,
+) -> None:
     code_template = request.getfixturevalue(code_template_fixture)
     if raises is not None:
         with pytest.raises(raises):

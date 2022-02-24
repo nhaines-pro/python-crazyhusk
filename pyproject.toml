@@ -17,7 +17,6 @@ import_heading_firstparty = "CrazyHusk"
 [tool.coverage.run]
 branch = true
 source = ["crazyhusk"]
-omit = ["*/tests/*"]
 
 [tool.coverage.paths]
 source = ["src", "*/site-packages"]

@@ -1,4 +1,5 @@
 # Third Party
+from typing import Any, List, Optional, Tuple, Type
 import pytest
 
 # CrazyHusk
@@ -16,7 +17,7 @@ from crazyhusk.__main__ import main
         # TODO: monkeypatch pkg_resources behavior
     ],
 )
-def test_main(monkeypatch, args, raises):
+def test_main(monkeypatch:Any, args:Optional[List[str]], raises:Optional[Tuple[Type[BaseException]]]) -> None:
     monkeypatch.setattr("sys.argv", args)
     if raises is not None:
         with pytest.raises(raises):

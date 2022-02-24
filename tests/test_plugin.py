@@ -2,6 +2,7 @@
 import json
 import os
 import types
+from typing import Any, Callable, Dict, Iterable, Optional, Type
 
 # Third Party
 import pytest
@@ -11,19 +12,19 @@ from crazyhusk import code, module, plugin
 
 
 @pytest.fixture(scope="function")
-def null_name_plugin_descriptor():
+def null_name_plugin_descriptor() -> plugin.PluginDescriptor:
     _plugin = plugin.PluginDescriptor()
     _plugin.friendly_name = None
     yield _plugin
 
 
 @pytest.fixture(scope="function")
-def empty_name_plugin_descriptor():
+def empty_name_plugin_descriptor() -> plugin.PluginDescriptor:
     yield plugin.PluginDescriptor()
 
 
 @pytest.fixture(scope="function")
-def null_version_plugin_descriptor():
+def null_version_plugin_descriptor() -> plugin.PluginDescriptor:
     _plugin = plugin.PluginDescriptor()
     _plugin.friendly_name = "NullVersion"
     _plugin.version_name = None
@@ -31,14 +32,14 @@ def null_version_plugin_descriptor():
 
 
 @pytest.fixture(scope="function")
-def empty_version_plugin_descriptor():
+def empty_version_plugin_descriptor() -> plugin.PluginDescriptor:
     _plugin = plugin.PluginDescriptor()
     _plugin.friendly_name = "EmptyVersion"
     yield _plugin
 
 
 @pytest.fixture(scope="function")
-def basic_plugin_descriptor():
+def basic_plugin_descriptor() -> plugin.PluginDescriptor:
     _plugin = plugin.PluginDescriptor()
     _plugin.friendly_name = "Basic"
     _plugin.version_name = "1.0"
@@ -46,7 +47,7 @@ def basic_plugin_descriptor():
 
 
 @pytest.fixture(scope="function")
-def default_valid_module_descriptor():
+def default_valid_module_descriptor() -> module.ModuleDescriptor:
     descriptor = module.ModuleDescriptor()
     descriptor.name = "DefaultValid"
     descriptor.host_type = "Runtime"
@@ -56,22 +57,22 @@ def default_valid_module_descriptor():
 
 @pytest.fixture(scope="function")
 def basic_plugin_descriptor_withmodule(
-    basic_plugin_descriptor, default_valid_module_descriptor
-):
+    basic_plugin_descriptor:plugin.PluginDescriptor, default_valid_module_descriptor:module.ModuleDescriptor
+) -> plugin.PluginDescriptor:
     basic_plugin_descriptor.add_module(default_valid_module_descriptor)
     yield basic_plugin_descriptor
 
 
 @pytest.fixture(scope="function")
 def basic_plugin_descriptor_withmodule_dict(
-    basic_plugin_descriptor, default_valid_module_descriptor
-):
+    basic_plugin_descriptor:plugin.PluginDescriptor, default_valid_module_descriptor:module.ModuleDescriptor
+)->Iterable[Dict[str,Any]]:
     dct = basic_plugin_descriptor.to_dict()
     dct["Modules"].append(default_valid_module_descriptor.to_dict())
     yield dct
 
 
-def test_plugin_descriptor_init(empty_name_plugin_descriptor):
+def test_plugin_descriptor_init(empty_name_plugin_descriptor:plugin.PluginDescriptor)->None:
     assert not empty_name_plugin_descriptor.can_contain_content
     assert not empty_name_plugin_descriptor.explicitly_loaded
     assert not empty_name_plugin_descriptor.installed
@@ -106,12 +107,12 @@ def test_plugin_descriptor_init(empty_name_plugin_descriptor):
     assert empty_name_plugin_descriptor.version_name == ""
 
 
-def test_plugin_descriptor_repr(empty_name_plugin_descriptor):
+def test_plugin_descriptor_repr(empty_name_plugin_descriptor:plugin.PluginDescriptor)->None:
     assert repr(empty_name_plugin_descriptor) == "<PluginDescriptor  version >"
 
 
 @pytest.mark.parametrize(
-    "plugin_descriptor,expected_type",
+    "plugin_descriptor_fixture,expected_type",
     [
         ("null_name_plugin_descriptor", dict),
         ("empty_name_plugin_descriptor", dict),
@@ -121,15 +122,15 @@ def test_plugin_descriptor_repr(empty_name_plugin_descriptor):
         ("basic_plugin_descriptor_withmodule", plugin.PluginDescriptor),
     ],
 )
-def test_plugin_descriptor_to_object(plugin_descriptor, expected_type, request):
-    plugin_descriptor = request.getfixturevalue(plugin_descriptor)
+def test_plugin_descriptor_to_object(plugin_descriptor_fixture:str, expected_type:Type[Any], request:Any)->None:
+    plugin_descriptor = request.getfixturevalue(plugin_descriptor_fixture)
     dct = plugin_descriptor.to_dict()
     assert isinstance(plugin.PluginDescriptor.to_object(dct), expected_type)
 
 
 def test_plugin_descriptor_to_object_module_dict(
-    basic_plugin_descriptor_withmodule_dict,
-):
+    basic_plugin_descriptor_withmodule_dict:Iterable[Dict[str,Any]],
+)->None:
     _plugin = plugin.PluginDescriptor.to_object(basic_plugin_descriptor_withmodule_dict)
     assert isinstance(_plugin, plugin.PluginDescriptor)
     for _module in _plugin.modules:
@@ -137,7 +138,7 @@ def test_plugin_descriptor_to_object_module_dict(
 
 
 @pytest.mark.parametrize(
-    "plugin_descriptor,expected_type",
+    "plugin_descriptor_fixture,expected_type",
     [
         ("null_name_plugin_descriptor", None),
         ("empty_name_plugin_descriptor", None),
@@ -147,15 +148,16 @@ def test_plugin_descriptor_to_object_module_dict(
         ("basic_plugin_descriptor_withmodule", module.ModuleDescriptor),
     ],
 )
-def test_plugin_descriptor_modules(plugin_descriptor, expected_type, request):
-    plugin_descriptor = request.getfixturevalue(plugin_descriptor)
+def test_plugin_descriptor_modules(plugin_descriptor_fixture:str, expected_type:Optional[Type[Any]], request:Any)->None:
+    plugin_descriptor = request.getfixturevalue(plugin_descriptor_fixture)
     for _module in plugin_descriptor.modules:
-        assert isinstance(_module, expected_type)
+        if expected_type is not None:
+            assert isinstance(_module, expected_type)
 
 
 def test_plugin_descriptor_add_module(
-    basic_plugin_descriptor, default_valid_module_descriptor
-):
+    basic_plugin_descriptor:plugin.PluginDescriptor, default_valid_module_descriptor:module.ModuleDescriptor
+)->None:
     with pytest.raises(NotImplementedError):
         assert basic_plugin_descriptor.add_module({}) is None
     assert basic_plugin_descriptor.add_module(default_valid_module_descriptor) is None
@@ -165,25 +167,25 @@ def test_plugin_descriptor_add_module(
 
 
 @pytest.fixture(scope="function")
-def null_plugin_reference_descriptor():
+def null_plugin_reference_descriptor() -> plugin.PluginReferenceDescriptor:
     yield plugin.PluginReferenceDescriptor()
 
 
 @pytest.fixture(scope="function")
-def empty_plugin_reference_descriptor():
+def empty_plugin_reference_descriptor() -> plugin.PluginReferenceDescriptor:
     ref = plugin.PluginReferenceDescriptor()
     ref.name = ""
     yield ref
 
 
 @pytest.fixture(scope="function")
-def basic_plugin_reference_descriptor():
+def basic_plugin_reference_descriptor() -> plugin.PluginReferenceDescriptor:
     ref = plugin.PluginReferenceDescriptor()
     ref.name = "Basic"
     yield ref
 
 
-def test_plugin_reference_descriptor_init(null_plugin_reference_descriptor):
+def test_plugin_reference_descriptor_init(null_plugin_reference_descriptor:plugin.PluginReferenceDescriptor)->None:
     assert not null_plugin_reference_descriptor.enabled
     assert isinstance(null_plugin_reference_descriptor.blacklist_platforms, list)
     assert len(null_plugin_reference_descriptor.blacklist_platforms) == 0
@@ -209,54 +211,53 @@ def test_plugin_reference_descriptor_init(null_plugin_reference_descriptor):
     assert len(null_plugin_reference_descriptor.whitelist_targets) == 0
 
 
-def test_plugin_reference_descriptor_repr(null_plugin_reference_descriptor):
+def test_plugin_reference_descriptor_repr(null_plugin_reference_descriptor:plugin.PluginReferenceDescriptor)->None:
     assert repr(null_plugin_reference_descriptor) == "<PluginReferenceDescriptor None>"
 
 
 @pytest.mark.parametrize(
-    "plugin_descriptor,expected_type",
+    "plugin_reference_descriptor_fixture,expected_type",
     [
         ("null_plugin_reference_descriptor", dict),
         ("empty_plugin_reference_descriptor", dict),
         ("basic_plugin_reference_descriptor", plugin.PluginReferenceDescriptor),
     ],
 )
-def test_plugin_descriptor_to_object(plugin_descriptor, expected_type, request):
-    plugin_descriptor = request.getfixturevalue(plugin_descriptor)
-    dct = plugin_descriptor.to_dict()
+def test_plugin_reference_descriptor_to_object(plugin_reference_descriptor_fixture:str, expected_type:Type[Any], request:Any)->None:
+    plugin_reference_descriptor = request.getfixturevalue(plugin_reference_descriptor_fixture)
+    dct = plugin_reference_descriptor.to_dict()
     assert isinstance(plugin.PluginReferenceDescriptor.to_object(dct), expected_type)
-
 
 # UnrealPlugin tests
 @pytest.fixture(scope="function")
-def empty_unreal_plugin():
+def empty_unreal_plugin() -> plugin.UnrealPlugin:
     yield plugin.UnrealPlugin("")
 
 
 @pytest.fixture(scope="function")
-def local_dir_unreal_plugin():
+def local_dir_unreal_plugin() -> plugin.UnrealPlugin:
     yield plugin.UnrealPlugin(".")
 
 
 @pytest.fixture(scope="function")
-def invalid_file_unreal_plugin():
+def invalid_file_unreal_plugin() -> plugin.UnrealPlugin:
     yield plugin.UnrealPlugin("./test.txt")
 
 
 @pytest.fixture(scope="function")
-def invalid_file_unreal_plugin_realpath():
+def invalid_file_unreal_plugin_realpath() -> plugin.UnrealPlugin:
     yield plugin.UnrealPlugin(os.path.realpath("./test.txt"))
 
 
 @pytest.fixture(scope="function")
-def empty_file_content_unreal_plugin(tmp_path):
+def empty_file_content_unreal_plugin(tmp_path:Any) -> plugin.UnrealPlugin:
     plugin_file = tmp_path / "Invalid.uplugin"
     plugin_file.write_text("")
     yield plugin.UnrealPlugin(plugin_file)
 
 
 @pytest.fixture(scope="function")
-def basic_unreal_plugin(tmp_path, basic_plugin_descriptor_withmodule_dict):
+def basic_unreal_plugin(tmp_path:Any, basic_plugin_descriptor_withmodule_dict:Iterable[Dict[str,Any]]) -> plugin.UnrealPlugin:
     plugin_file = tmp_path / "Basic.uplugin"
     plugin_file.write_text(json.dumps(basic_plugin_descriptor_withmodule_dict))
     yield plugin.UnrealPlugin(plugin_file)
@@ -266,7 +267,7 @@ def basic_unreal_plugin(tmp_path, basic_plugin_descriptor_withmodule_dict):
     "plugin_file,raises",
     [(None, TypeError), ("", None)],
 )
-def test_unreal_plugin_init(plugin_file, raises):
+def test_unreal_plugin_init(plugin_file:Optional[str], raises:Optional[Type[BaseException]]) -> None:
     if raises is not None:
         with pytest.raises(raises):
             assert plugin.UnrealPlugin(plugin_file)
@@ -275,12 +276,12 @@ def test_unreal_plugin_init(plugin_file, raises):
         assert _plugin.plugin_file == plugin_file
 
 
-def test_unreal_plugin_repr(empty_unreal_plugin):
+def test_unreal_plugin_repr(empty_unreal_plugin:plugin.UnrealPlugin) -> None:
     assert repr(empty_unreal_plugin) == "<UnrealPlugin at >"
 
 
 @pytest.mark.parametrize(
-    "unreal_plugin,plugin_dir,name,config_dir,content_dir",
+    "unreal_plugin_fixture,plugin_dir,name,config_dir,content_dir",
     [
         ("empty_unreal_plugin", "", "", "Config", "Content"),
         ("local_dir_unreal_plugin", "", ".", "Config", "Content"),
@@ -294,9 +295,9 @@ def test_unreal_plugin_repr(empty_unreal_plugin):
     ],
 )
 def test_unreal_plugin_properties(
-    unreal_plugin, plugin_dir, name, config_dir, content_dir, request
-):
-    unreal_plugin = request.getfixturevalue(unreal_plugin)
+    unreal_plugin_fixture:str, plugin_dir:str, name:str, config_dir:str, content_dir:str, request:Any
+) -> None:
+    unreal_plugin = request.getfixturevalue(unreal_plugin_fixture)
     assert unreal_plugin.plugin_dir == plugin_dir
     assert unreal_plugin.name == name
     assert unreal_plugin.config_dir == config_dir
@@ -304,7 +305,7 @@ def test_unreal_plugin_properties(
 
 
 @pytest.mark.parametrize(
-    "unreal_plugin,raises",
+    "unreal_plugin_fixture,raises",
     [
         ("empty_unreal_plugin", plugin.UnrealPluginError),
         ("local_dir_unreal_plugin", plugin.UnrealPluginError),
@@ -312,22 +313,22 @@ def test_unreal_plugin_properties(
         ("empty_file_content_unreal_plugin", None),
     ],
 )
-def test_unreal_plugin_file_exists(unreal_plugin, raises, request):
-    unreal_plugin = request.getfixturevalue(unreal_plugin)
-    if raises:
+def test_unreal_plugin_file_exists(unreal_plugin_fixture:str, raises:Optional[Type[BaseException]], request:Any)->None:
+    unreal_plugin = request.getfixturevalue(unreal_plugin_fixture)
+    if raises is not None:
         with pytest.raises(raises):
             assert plugin.UnrealPlugin.plugin_file_exists(unreal_plugin) is None
     else:
         assert plugin.UnrealPlugin.plugin_file_exists(unreal_plugin) is None
 
 
-def test_unreal_plugin_file_exists_types():
+def test_unreal_plugin_file_exists_types()->None:
     with pytest.raises(TypeError):
         assert plugin.UnrealPlugin.plugin_file_exists(None)
 
 
 @pytest.mark.parametrize(
-    "unreal_plugin,raises",
+    "unreal_plugin_fixture,raises",
     [
         ("empty_unreal_plugin", plugin.UnrealPluginError),
         ("local_dir_unreal_plugin", plugin.UnrealPluginError),
@@ -335,9 +336,9 @@ def test_unreal_plugin_file_exists_types():
         ("empty_file_content_unreal_plugin", None),
     ],
 )
-def test_unreal_plugin_file_extension(unreal_plugin, raises, request):
-    unreal_plugin = request.getfixturevalue(unreal_plugin)
-    if raises:
+def test_unreal_plugin_file_extension(unreal_plugin_fixture:str, raises:Optional[Type[BaseException]], request:Any)->None:
+    unreal_plugin = request.getfixturevalue(unreal_plugin_fixture)
+    if raises is not None:
         with pytest.raises(raises):
             assert (
                 plugin.UnrealPlugin.valid_plugin_file_extension(unreal_plugin) is None
@@ -346,7 +347,7 @@ def test_unreal_plugin_file_extension(unreal_plugin, raises, request):
         assert plugin.UnrealPlugin.valid_plugin_file_extension(unreal_plugin) is None
 
 
-def test_unreal_plugin_file_extension_types():
+def test_unreal_plugin_file_extension_types()-> None:
     with pytest.raises(TypeError):
         assert plugin.UnrealPlugin.valid_plugin_file_extension(None)
 
@@ -367,9 +368,9 @@ def test_unreal_plugin_file_extension_types():
     ],
 )
 def test_unreal_path_to_file_path(
-    unreal_path, raises, expected, invalid_file_unreal_plugin
-):
-    if raises:
+    unreal_path:str, raises:Optional[Type[BaseException]], expected:Optional[str], invalid_file_unreal_plugin:plugin.UnrealPlugin
+)->None:
+    if raises is not None:
         with pytest.raises(raises):
             assert (
                 invalid_file_unreal_plugin.unreal_path_to_file_path(unreal_path)
@@ -397,9 +398,9 @@ def test_unreal_path_to_file_path(
     ],
 )
 def test_unreal_path_from_file_path(
-    file_path, raises, expected, invalid_file_unreal_plugin_realpath
-):
-    if raises:
+    file_path:str, raises:Optional[Type[BaseException]], expected:Optional[str], invalid_file_unreal_plugin_realpath:plugin.UnrealPlugin
+)->None:
+    if raises is not None:
         with pytest.raises(raises):
             assert (
                 invalid_file_unreal_plugin_realpath.unreal_path_from_file_path(
@@ -414,7 +415,7 @@ def test_unreal_path_from_file_path(
         )
 
 
-def test_unreal_plugin_code_templates(empty_file_content_unreal_plugin):
+def test_unreal_plugin_code_templates(empty_file_content_unreal_plugin:plugin.UnrealPlugin)->None:
     plugin.entry_points = lambda: {}
     for _name, _plugin in empty_file_content_unreal_plugin.code_templates.items():
         assert isinstance(_name, str)
@@ -422,8 +423,8 @@ def test_unreal_plugin_code_templates(empty_file_content_unreal_plugin):
 
 
 def test_unreal_plugin_properties_types(
-    empty_file_content_unreal_plugin, basic_unreal_plugin
-):
+    empty_file_content_unreal_plugin:plugin.UnrealPlugin, basic_unreal_plugin:plugin.UnrealPlugin
+)->None:
     plugin.entry_points = lambda: {}
     with pytest.raises(json.decoder.JSONDecodeError):
         assert empty_file_content_unreal_plugin.descriptor is None
@@ -437,14 +438,14 @@ def test_unreal_plugin_properties_types(
         assert isinstance(_ref, plugin.PluginReferenceDescriptor)
 
 
-def test_unreal_plugin_list_plugin_code_templates(basic_unreal_plugin):
+def test_unreal_plugin_list_plugin_code_templates(basic_unreal_plugin:plugin.UnrealPlugin)->None:
     assert (
         len(list(plugin.UnrealPlugin.list_plugin_code_templates(basic_unreal_plugin)))
         == 0
     )
 
 
-def test(*args):
+def test(*args:Any)->None:
     return
 
 
@@ -452,7 +453,7 @@ class test_entry_point:
     def __init__(self) -> None:
         self.name = "test"
 
-    def load(*args):
+    def load(*args:Any)->Callable[[],None]:
         return test
 
 
@@ -460,11 +461,11 @@ class null_entry_point:
     def __init__(self) -> None:
         self.name = "test"
 
-    def load(*args):
+    def load(*args:Any)->None:
         return None
 
 
-def test_unreal_plugin_validate(basic_unreal_plugin):
+def test_unreal_plugin_validate(basic_unreal_plugin:plugin.UnrealPlugin)->None:
     plugin.entry_points = lambda: {}
     assert basic_unreal_plugin.validate() is None
 

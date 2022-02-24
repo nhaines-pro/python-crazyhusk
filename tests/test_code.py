@@ -1,4 +1,5 @@
 # Third Party
+from typing import Any, Optional, Set, Type
 import pytest
 
 # CrazyHusk
@@ -6,34 +7,34 @@ from crazyhusk import code
 
 
 @pytest.fixture(scope="function")
-def null_code_template():
+def null_code_template() -> code.CodeTemplate:
     yield code.CodeTemplate(None)
 
 
 @pytest.fixture(scope="function")
-def empty_code_template():
+def empty_code_template() -> code.CodeTemplate:
     yield code.CodeTemplate("")
 
 
 @pytest.fixture(scope="function")
-def basic_code_template():
+def basic_code_template() -> code.CodeTemplate:
     yield code.CodeTemplate("Basic", "%TEST_TOKEN%")
 
 
 @pytest.fixture(scope="function")
-def multiline_basic_code_template():
+def multiline_basic_code_template() -> code.CodeTemplate:
     yield code.CodeTemplate("MultilineBasic", "//%TEST_TOKEN%\n//%TEST_TOKEN%")
 
 
 @pytest.fixture(scope="function")
-def multiline_multitoken_code_template():
+def multiline_multitoken_code_template() -> code.CodeTemplate:
     yield code.CodeTemplate(
         "MultilineMultitoken", r"//%TEST_TOKEN_1%\n//%TEST_TOKEN_2%"
     )
 
 
 @pytest.mark.parametrize(
-    "code_template,name,template_string,tokens",
+    "code_template_fixture,name,template_string,tokens",
     [
         ("null_code_template", None, "", set()),
         ("empty_code_template", "", "", set()),
@@ -52,8 +53,8 @@ def multiline_multitoken_code_template():
         ),
     ],
 )
-def test_codetemplate_init(code_template, name, template_string, tokens, request):
-    code_template = request.getfixturevalue(code_template)
+def test_codetemplate_init(code_template_fixture:str, name:Optional[str], template_string:str, tokens:Set[str], request:Any) -> None:
+    code_template = request.getfixturevalue(code_template_fixture)
     assert code_template.name == name
     assert code_template.template_string == template_string
     assert repr(code_template) == f"<CodeTemplate {code_template.name}>"
@@ -62,7 +63,7 @@ def test_codetemplate_init(code_template, name, template_string, tokens, request
 
 
 @pytest.mark.parametrize(
-    "code_template,tokens,raises,expected",
+    "code_template_fixture,tokens,raises,expected",
     [
         ("null_code_template", {}, None, ""),
         ("empty_code_template", {}, None, ""),
@@ -82,8 +83,8 @@ def test_codetemplate_init(code_template, name, template_string, tokens, request
         ),
     ],
 )
-def test_codetemplate_make_instance(code_template, tokens, raises, expected, request):
-    code_template = request.getfixturevalue(code_template)
+def test_codetemplate_make_instance(code_template_fixture:str, tokens:Set[str], raises:Optional[Type[BaseException]], expected:str, request:Any) -> None:
+    code_template = request.getfixturevalue(code_template_fixture)
     if raises is not None:
         with pytest.raises(raises):
             code_template.make_instance(**tokens)

@@ -1,4 +1,5 @@
 # Third Party
+from typing import Any, Type
 import pytest
 
 # CrazyHusk
@@ -6,19 +7,19 @@ from crazyhusk import module
 
 
 @pytest.fixture(scope="function")
-def null_module_descriptor():
+def null_module_descriptor() -> module.ModuleDescriptor:
     yield module.ModuleDescriptor()
 
 
 @pytest.fixture(scope="function")
-def empty_module_descriptor():
+def empty_module_descriptor() -> module.ModuleDescriptor:
     descriptor = module.ModuleDescriptor()
     descriptor.name = ""
     yield descriptor
 
 
 @pytest.fixture(scope="function")
-def invalid_hosttype_module_descriptor():
+def invalid_hosttype_module_descriptor() -> module.ModuleDescriptor:
     descriptor = module.ModuleDescriptor()
     descriptor.name = "InvalidHostType"
     descriptor.host_type = "Invalid"
@@ -26,7 +27,7 @@ def invalid_hosttype_module_descriptor():
 
 
 @pytest.fixture(scope="function")
-def invalid_loadingphase_module_descriptor():
+def invalid_loadingphase_module_descriptor() -> module.ModuleDescriptor:
     descriptor = module.ModuleDescriptor()
     descriptor.name = "InvalidLoadingPhase"
     descriptor.host_type = "Runtime"
@@ -35,7 +36,7 @@ def invalid_loadingphase_module_descriptor():
 
 
 @pytest.fixture(scope="function")
-def default_valid_module_descriptor():
+def default_valid_module_descriptor() -> module.ModuleDescriptor:
     descriptor = module.ModuleDescriptor()
     descriptor.name = "DefaultValid"
     descriptor.host_type = "Runtime"
@@ -43,7 +44,7 @@ def default_valid_module_descriptor():
     yield descriptor
 
 
-def test_module_descriptor_init(null_module_descriptor):
+def test_module_descriptor_init(null_module_descriptor:module.ModuleDescriptor)->None:
     assert null_module_descriptor.name is None
     assert null_module_descriptor.host_type is None
     assert null_module_descriptor.loading_phase is None
@@ -58,21 +59,21 @@ def test_module_descriptor_init(null_module_descriptor):
     assert null_module_descriptor.whitelist_targets == []
 
 
-def test_module_descriptor_repr(null_module_descriptor):
+def test_module_descriptor_repr(null_module_descriptor:module.ModuleDescriptor)->None:
     assert repr(null_module_descriptor) == "<ModuleDescriptor None>"
 
 
-def test_module_descriptor_hash(null_module_descriptor):
+def test_module_descriptor_hash(null_module_descriptor:module.ModuleDescriptor)->None:
     assert hash(null_module_descriptor) == hash(None)
 
 
-def test_module_descriptor_equality(null_module_descriptor, empty_module_descriptor):
+def test_module_descriptor_equality(null_module_descriptor:module.ModuleDescriptor, empty_module_descriptor:module.ModuleDescriptor)->None:
     assert null_module_descriptor == null_module_descriptor
     assert null_module_descriptor != empty_module_descriptor
 
 
 @pytest.mark.parametrize(
-    "module_descriptor,expected",
+    "module_descriptor_fixture,expected",
     [
         ("null_module_descriptor", False),
         ("empty_module_descriptor", False),
@@ -81,13 +82,13 @@ def test_module_descriptor_equality(null_module_descriptor, empty_module_descrip
         ("default_valid_module_descriptor", True),
     ],
 )
-def test_module_descriptor_is_valid(module_descriptor, expected, request):
-    module_descriptor = request.getfixturevalue(module_descriptor)
+def test_module_descriptor_is_valid(module_descriptor_fixture:str, expected:bool, request:Any)->None:
+    module_descriptor = request.getfixturevalue(module_descriptor_fixture)
     assert module_descriptor.is_valid() is expected
 
 
 @pytest.mark.parametrize(
-    "module_descriptor,expected_type",
+    "module_descriptor_fixture,expected_type",
     [
         ("null_module_descriptor", dict),
         ("empty_module_descriptor", dict),
@@ -96,7 +97,7 @@ def test_module_descriptor_is_valid(module_descriptor, expected, request):
         ("default_valid_module_descriptor", module.ModuleDescriptor),
     ],
 )
-def test_module_descriptor_to_object(module_descriptor, expected_type, request):
-    module_descriptor = request.getfixturevalue(module_descriptor)
+def test_module_descriptor_to_object(module_descriptor_fixture:str, expected_type:Type[Any], request:Any)->None:
+    module_descriptor = request.getfixturevalue(module_descriptor_fixture)
     dct = module_descriptor.to_dict()
     assert isinstance(module.ModuleDescriptor.to_object(dct), expected_type)

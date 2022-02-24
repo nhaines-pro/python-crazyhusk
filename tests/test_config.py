@@ -1,5 +1,6 @@
 # Standard Library
 import configparser
+from typing import Any
 
 # Third Party
 import pytest
@@ -9,13 +10,12 @@ from crazyhusk import config
 
 
 @pytest.fixture(scope="function")
-def empty_parser():
+def empty_parser() -> config.UnrealConfigParser:
     yield config.UnrealConfigParser()
 
 
-def test_config_init(empty_parser):
+def test_config_init(empty_parser:config.UnrealConfigParser) -> None:
     assert isinstance(empty_parser, configparser.RawConfigParser)
-    assert empty_parser._strict is False
 
 
 @pytest.mark.parametrize(
@@ -28,5 +28,5 @@ def test_config_init(empty_parser):
         ("!AxisConfig", "AxisConfig"),
     ],
 )
-def test_config_optionxform(empty_parser, input_string, output_string):
+def test_config_optionxform(empty_parser:config.UnrealConfigParser, input_string:str, output_string:str) -> None:
     assert empty_parser.optionxform(input_string) == output_string

@@ -2,35 +2,38 @@
 import json
 import os
 import types
+from typing import Any, Dict, Optional, Type
 
 # Third Party
 import pytest
 
 # CrazyHusk
 from crazyhusk import config, engine
+from crazyhusk.code import CodeTemplate
+from crazyhusk.plugin import UnrealPlugin
 
 
 @pytest.fixture(scope="function")
-def version_empty():
+def version_empty() -> engine.UnrealVersion:
     yield engine.UnrealVersion()
 
 
 @pytest.fixture(scope="function")
-def version_5_0():
+def version_5_0() -> engine.UnrealVersion:
     version = engine.UnrealVersion()
     version.major = 5
     yield version
 
 
 @pytest.fixture(scope="function")
-def version_26_0():
+def version_26_0() -> engine.UnrealVersion:
     version = engine.UnrealVersion()
     version.minor = 26
     return version
 
 
 @pytest.fixture(scope="function")
-def version_26_1():
+def version_26_1() -> engine.UnrealVersion:
     version = engine.UnrealVersion()
     version.minor = 26
     version.patch = 1
@@ -38,7 +41,7 @@ def version_26_1():
 
 
 @pytest.fixture(scope="function")
-def version_26_1_123456():
+def version_26_1_123456() -> engine.UnrealVersion:
     version = engine.UnrealVersion()
     version.minor = 26
     version.patch = 1
@@ -47,7 +50,7 @@ def version_26_1_123456():
 
 
 @pytest.fixture(scope="function")
-def version_26_1_234567():
+def version_26_1_234567() -> engine.UnrealVersion:
     version = engine.UnrealVersion()
     version.minor = 26
     version.patch = 1
@@ -56,7 +59,7 @@ def version_26_1_234567():
 
 
 @pytest.fixture(scope="function")
-def version_26_1_123456_branch():
+def version_26_1_123456_branch() -> engine.UnrealVersion:
     version = engine.UnrealVersion()
     version.minor = 26
     version.patch = 1
@@ -66,7 +69,7 @@ def version_26_1_123456_branch():
 
 
 @pytest.fixture(scope="function")
-def version_egl_4_26_2():
+def version_egl_4_26_2() -> engine.UnrealVersion:
     version = engine.UnrealVersion()
     version.minor = 26
     version.patch = 2
@@ -76,7 +79,7 @@ def version_egl_4_26_2():
 
 
 @pytest.mark.parametrize(
-    "version,major,minor,patch,changelist,branch",
+    "version_fixture,major,minor,patch,changelist,branch",
     [
         ("version_empty", 4, 0, 0, 0, ""),
         ("version_26_0", 4, 26, 0, 0, ""),
@@ -85,8 +88,8 @@ def version_egl_4_26_2():
         ("version_26_1_123456_branch", 4, 26, 1, 123456, "++UE4+Release-4.26"),
     ],
 )
-def test_unreal_version_init(version, major, minor, patch, changelist, branch, request):
-    version = request.getfixturevalue(version)
+def test_unreal_version_init(version_fixture:str, major:int, minor:int, patch:int, changelist:int, branch:str, request:Any) -> None:
+    version = request.getfixturevalue(version_fixture)
     assert version.major == major
     assert version.minor == minor
     assert version.patch == patch
@@ -95,7 +98,7 @@ def test_unreal_version_init(version, major, minor, patch, changelist, branch, r
 
 
 @pytest.mark.parametrize(
-    "version,version_string",
+    "version_fixture,version_string",
     [
         ("version_empty", "4.0"),
         ("version_26_0", "4.26"),
@@ -104,13 +107,13 @@ def test_unreal_version_init(version, major, minor, patch, changelist, branch, r
         ("version_26_1_123456_branch", "4.26.1-123456+++UE4+Release-4.26"),
     ],
 )
-def test_unreal_version_string(version, version_string, request):
-    version = request.getfixturevalue(version)
+def test_unreal_version_string(version_fixture:str, version_string:str, request:Any) -> None:
+    version = request.getfixturevalue(version_fixture)
     assert str(version) == version_string
 
 
 @pytest.mark.parametrize(
-    "version,version_repr",
+    "version_fixture,version_repr",
     [
         ("version_empty", "<UnrealVersion 4.0>"),
         ("version_26_0", "<UnrealVersion 4.26>"),
@@ -122,13 +125,13 @@ def test_unreal_version_string(version, version_string, request):
         ),
     ],
 )
-def test_unreal_version_repr(version, version_repr, request):
-    version = request.getfixturevalue(version)
+def test_unreal_version_repr(version_fixture:str, version_repr:str, request:Any) -> None:
+    version = request.getfixturevalue(version_fixture)
     assert repr(version) == version_repr
 
 
 @pytest.mark.parametrize(
-    "first_version,second_version",
+    "first_version_fixture,second_version_fixture",
     [
         ("version_empty", "version_26_0"),
         ("version_empty", "version_26_1"),
@@ -147,23 +150,23 @@ def test_unreal_version_repr(version, version_repr, request):
         ("version_26_1_234567", "version_5_0"),
     ],
 )
-def test_unreal_version_lt(first_version, second_version, request):
-    first_version = request.getfixturevalue(first_version)
-    second_version = request.getfixturevalue(second_version)
+def test_unreal_version_lt(first_version_fixture:str, second_version_fixture:str, request:Any) -> None:
+    first_version = request.getfixturevalue(first_version_fixture)
+    second_version = request.getfixturevalue(second_version_fixture)
     assert first_version < second_version
 
 
-def test_unreal_version_lt_null(version_empty):
+def test_unreal_version_lt_null(version_empty:engine.UnrealVersion)-> None:
     with pytest.raises(TypeError):
         assert version_empty < None
 
 
-def test_unreal_version_lt_not(version_empty, version_5_0):
+def test_unreal_version_lt_not(version_empty:engine.UnrealVersion, version_5_0:engine.UnrealVersion) -> None:
     assert not version_5_0 < version_empty
 
 
 @pytest.mark.parametrize(
-    "first_version,second_version",
+    "first_version_fixture,second_version_fixture",
     [
         ("version_empty", "version_empty"),
         ("version_26_0", "version_26_0"),
@@ -173,13 +176,13 @@ def test_unreal_version_lt_not(version_empty, version_5_0):
         ("version_5_0", "version_5_0"),
     ],
 )
-def test_unreal_version_eq(first_version, second_version, request):
-    first_version = request.getfixturevalue(first_version)
-    second_version = request.getfixturevalue(second_version)
+def test_unreal_version_eq(first_version_fixture:str, second_version_fixture:str, request:Any) -> None:
+    first_version = request.getfixturevalue(first_version_fixture)
+    second_version = request.getfixturevalue(second_version_fixture)
     assert first_version == second_version
 
 
-def test_unreal_version_eq_null(version_empty):
+def test_unreal_version_eq_null(version_empty:engine.UnrealVersion) -> None:
     assert not version_empty == None
 
 
@@ -192,7 +195,7 @@ def test_unreal_version_eq_null(version_empty):
         ({"MinorVersion": 26, "PatchVersion": 1}, "4.26.1"),
     ],
 )
-def test_unreal_version_to_object(dct, version_string):
+def test_unreal_version_to_object(dct:Dict[str,int], version_string:str) -> None:
     assert str(engine.UnrealVersion.to_object(dct)) == version_string
 
 
@@ -205,7 +208,7 @@ def test_unreal_version_to_object(dct, version_string):
         (".", None, os.path.realpath(".")),
     ],
 )
-def test_unreal_engine_init(base_dir, raises, expected):
+def test_unreal_engine_init(base_dir:Optional[str], raises:Optional[Type[BaseException]], expected:Optional[str]) -> None:
     if raises is not None:
         with pytest.raises(raises):
             assert engine.UnrealEngine(base_dir)
@@ -214,17 +217,17 @@ def test_unreal_engine_init(base_dir, raises, expected):
 
 
 @pytest.fixture(scope="function")
-def engine_empty(tmp_path):
+def engine_empty(tmp_path:Any) -> engine.UnrealEngine:
     yield engine.UnrealEngine(tmp_path / "Empty")
 
 
 @pytest.fixture(scope="function")
-def engine_local():
+def engine_local() -> engine.UnrealEngine:
     yield engine.UnrealEngine(".")
 
 
 @pytest.fixture(scope="function")
-def engine_empty_version_empty(tmp_path, version_empty):
+def engine_empty_version_empty(tmp_path:Any, version_empty:engine.UnrealVersion) -> engine.UnrealEngine:
     tmp_engine_dir = tmp_path / "EmptyVersion"
     tmp_engine_dir.mkdir()
     engine_dir = tmp_engine_dir / "Engine"
@@ -239,7 +242,7 @@ def engine_empty_version_empty(tmp_path, version_empty):
 
 
 @pytest.fixture(scope="function")
-def engine_empty_version_egl_4_26_2(tmp_path, version_egl_4_26_2):
+def engine_empty_version_egl_4_26_2(tmp_path:Any, version_egl_4_26_2:engine.UnrealVersion) -> engine.UnrealEngine:
     tmp_engine_dir = tmp_path / "EGL4.26.2"
     tmp_engine_dir.mkdir()
     engine_dir = tmp_engine_dir / "Engine"
@@ -257,29 +260,29 @@ def engine_empty_version_egl_4_26_2(tmp_path, version_egl_4_26_2):
     yield engine.UnrealEngine(tmp_engine_dir)
 
 
-def test_unreal_engine_repr(engine_empty):
+def test_unreal_engine_repr(engine_empty:engine.UnrealEngine) -> None:
     assert (
         repr(engine_empty)
         == f"<UnrealEngine None Build None at {engine_empty.base_dir}>"
     )
 
 
-def test_unreal_engine_lt_types(engine_empty, engine_empty_version_empty):
+def test_unreal_engine_lt_types(engine_empty:engine.UnrealEngine, engine_empty_version_empty:engine.UnrealEngine) -> None:
     with pytest.raises(TypeError):
         assert engine_empty < None
         assert engine_empty < engine_empty_version_empty
 
 
-def test_unreal_engine_lt(engine_empty_version_empty, engine_empty_version_egl_4_26_2):
+def test_unreal_engine_lt(engine_empty_version_empty:engine.UnrealEngine, engine_empty_version_egl_4_26_2:engine.UnrealEngine) -> None:
     assert engine_empty_version_empty < engine_empty_version_egl_4_26_2
 
 
-def test_unreal_engine_context(engine_empty):
+def test_unreal_engine_context(engine_empty:engine.UnrealEngine)->None:
     with engine_empty:
         assert engine_empty
 
 
-def test_unreal_engine_dir_properties(engine_empty_version_egl_4_26_2):
+def test_unreal_engine_dir_properties(engine_empty_version_egl_4_26_2:engine.UnrealEngine)->None:
     assert engine_empty_version_egl_4_26_2.engine_dir == os.path.join(
         engine_empty_version_egl_4_26_2.base_dir, "Engine"
     )
@@ -307,20 +310,20 @@ def test_unreal_engine_dir_properties(engine_empty_version_egl_4_26_2):
 
 
 @pytest.mark.parametrize(
-    "unreal_engine,expected",
+    "unreal_engine_fixture,expected",
     [
         ("engine_empty", None),
         ("engine_empty_version_egl_4_26_2", "Installed"),
         ("engine_empty_version_empty", "Source"),
     ],
 )
-def test_unreal_engine_build_type(unreal_engine, expected, request):
-    unreal_engine = request.getfixturevalue(unreal_engine)
+def test_unreal_engine_build_type(unreal_engine_fixture:str, expected:Optional[str], request:Any) -> None:
+    unreal_engine = request.getfixturevalue(unreal_engine_fixture)
     assert unreal_engine.build_type == expected
 
 
 @pytest.mark.parametrize(
-    "unreal_engine,executable,raises",
+    "unreal_engine_fixture,executable,raises",
     [
         ("engine_local", None, TypeError),
         ("engine_local", ".", None),
@@ -328,8 +331,8 @@ def test_unreal_engine_build_type(unreal_engine, expected, request):
         ("engine_local", os.path.realpath(".."), engine.UnrealExecutionError),
     ],
 )
-def test_unreal_engine_exe_common_path(unreal_engine, executable, raises, request):
-    unreal_engine = request.getfixturevalue(unreal_engine)
+def test_unreal_engine_exe_common_path(unreal_engine_fixture:str, executable:Optional[str], raises:Optional[Type[BaseException]], request:Any) -> None:
+    unreal_engine = request.getfixturevalue(unreal_engine_fixture)
     if raises is not None:
         with pytest.raises(raises):
             assert engine.UnrealEngine.engine_exe_common_path(unreal_engine, executable)
@@ -340,13 +343,13 @@ def test_unreal_engine_exe_common_path(unreal_engine, executable, raises, reques
         )
 
 
-def test_unreal_engine_exe_common_path_types():
+def test_unreal_engine_exe_common_path_types() ->None:
     with pytest.raises(TypeError):
         assert engine.UnrealEngine.engine_exe_common_path(None, None)
 
 
 @pytest.mark.parametrize(
-    "unreal_engine,executable,raises",
+    "unreal_engine_fixture,executable,raises",
     [
         ("engine_empty", "", engine.UnrealExecutionError),
         ("engine_empty_version_egl_4_26_2", "", engine.UnrealExecutionError),
@@ -358,8 +361,8 @@ def test_unreal_engine_exe_common_path_types():
         ("engine_local", os.path.realpath(".."), engine.UnrealExecutionError),
     ],
 )
-def test_unreal_engine_exe_exists(unreal_engine, executable, raises, request):
-    unreal_engine = request.getfixturevalue(unreal_engine)
+def test_unreal_engine_exe_exists(unreal_engine_fixture:str, executable:Optional[str], raises:Optional[Type[BaseException]], request:Any)->None:
+    unreal_engine = request.getfixturevalue(unreal_engine_fixture)
     if raises is not None:
         with pytest.raises(raises):
             assert engine.UnrealEngine.engine_exe_exists(unreal_engine, executable)
@@ -367,13 +370,13 @@ def test_unreal_engine_exe_exists(unreal_engine, executable, raises, request):
         assert engine.UnrealEngine.engine_exe_exists(unreal_engine, executable) is None
 
 
-def test_unreal_engine_exe_exists_types():
+def test_unreal_engine_exe_exists_types() -> None:
     with pytest.raises(TypeError):
         assert engine.UnrealEngine.engine_exe_exists(None, None)
 
 
 @pytest.mark.parametrize(
-    "unreal_engine,raises",
+    "unreal_engine_fixture,raises",
     [
         ("engine_empty", engine.UnrealEngineError),
         ("engine_empty_version_egl_4_26_2", None),
@@ -381,8 +384,8 @@ def test_unreal_engine_exe_exists_types():
         ("engine_local", engine.UnrealEngineError),
     ],
 )
-def test_unreal_engine_dir_exists(unreal_engine, raises, request):
-    unreal_engine = request.getfixturevalue(unreal_engine)
+def test_unreal_engine_dir_exists(unreal_engine_fixture:str, raises:Optional[Type[BaseException]], request:Any) -> None:
+    unreal_engine = request.getfixturevalue(unreal_engine_fixture)
     if raises is not None:
         with pytest.raises(raises):
             assert engine.UnrealEngine.engine_dir_exists(unreal_engine)
@@ -390,13 +393,13 @@ def test_unreal_engine_dir_exists(unreal_engine, raises, request):
         assert engine.UnrealEngine.engine_dir_exists(unreal_engine) is None
 
 
-def test_unreal_engine_dir_exist_types():
+def test_unreal_engine_dir_exist_types() -> None:
     with pytest.raises(TypeError):
         assert engine.UnrealEngine.engine_dir_exists(None)
 
 
 @pytest.mark.parametrize(
-    "unreal_engine,expected",
+    "unreal_engine_fixture,expected",
     [
         ("engine_empty", False),
         ("engine_empty_version_egl_4_26_2", True),
@@ -404,13 +407,13 @@ def test_unreal_engine_dir_exist_types():
         ("engine_local", False),
     ],
 )
-def test_unreal_engine_is_installed_build(unreal_engine, expected, request):
-    unreal_engine = request.getfixturevalue(unreal_engine)
+def test_unreal_engine_is_installed_build(unreal_engine_fixture:str, expected:bool, request:Any) -> None:
+    unreal_engine = request.getfixturevalue(unreal_engine_fixture)
     assert unreal_engine.is_installed_build() is expected
 
 
 @pytest.mark.parametrize(
-    "unreal_engine,expected",
+    "unreal_engine_fixture,expected",
     [
         ("engine_empty", False),
         ("engine_empty_version_egl_4_26_2", False),
@@ -418,8 +421,8 @@ def test_unreal_engine_is_installed_build(unreal_engine, expected, request):
         ("engine_local", False),
     ],
 )
-def test_unreal_engine_is_source_build(unreal_engine, expected, request):
-    unreal_engine = request.getfixturevalue(unreal_engine)
+def test_unreal_engine_is_source_build(unreal_engine_fixture:str, expected:bool, request:Any) -> None:
+    unreal_engine = request.getfixturevalue(unreal_engine_fixture)
     assert unreal_engine.is_source_build() is expected
 
 
@@ -442,7 +445,7 @@ def test_unreal_engine_is_source_build(unreal_engine, expected, request):
         ("/test/whatever", engine.UnrealEngineError, None),
     ],
 )
-def test_unreal_path_to_file_path(unreal_path, raises, expected, engine_local):
+def test_unreal_path_to_file_path(unreal_path:str, raises:Optional[Type[BaseException]], expected:Optional[str], engine_local:engine.UnrealEngine) -> None:
     if raises:
         with pytest.raises(raises):
             assert engine_local.unreal_path_to_file_path(unreal_path) == expected
@@ -465,7 +468,7 @@ def test_unreal_path_to_file_path(unreal_path, raises, expected, engine_local):
         ),
     ],
 )
-def test_unreal_path_from_file_path(file_path, raises, expected, engine_local):
+def test_unreal_path_from_file_path(file_path:str, raises:Optional[Type[BaseException]], expected:Optional[str], engine_local:engine.UnrealEngine) -> None:
     if raises:
         with pytest.raises(raises):
             assert engine_local.unreal_path_from_file_path(file_path) == expected
@@ -474,7 +477,7 @@ def test_unreal_path_from_file_path(file_path, raises, expected, engine_local):
 
 
 @pytest.mark.parametrize(
-    "unreal_engine,expected",
+    "unreal_engine_fixture,expected",
     [
         ("engine_empty", {}),
         ("engine_empty_version_egl_4_26_2", {}),
@@ -482,13 +485,13 @@ def test_unreal_path_from_file_path(file_path, raises, expected, engine_local):
         ("engine_local", {}),
     ],
 )
-def test_unreal_engine_code_templates(unreal_engine, expected, request):
-    unreal_engine = request.getfixturevalue(unreal_engine)
+def test_unreal_engine_code_templates(unreal_engine_fixture:str, expected:Dict[str,CodeTemplate], request:Any) -> None:
+    unreal_engine = request.getfixturevalue(unreal_engine_fixture)
     assert unreal_engine.code_templates == expected
 
 
 @pytest.mark.parametrize(
-    "unreal_engine,expected",
+    "unreal_engine_fixture,expected",
     [
         ("engine_empty", {}),
         ("engine_empty_version_egl_4_26_2", {}),
@@ -496,8 +499,8 @@ def test_unreal_engine_code_templates(unreal_engine, expected, request):
         ("engine_local", {}),
     ],
 )
-def test_unreal_engine_plugins(unreal_engine, expected, request):
-    unreal_engine = request.getfixturevalue(unreal_engine)
+def test_unreal_engine_plugins(unreal_engine_fixture:str, expected:Dict[str,UnrealPlugin], request:Any) -> None:
+    unreal_engine = request.getfixturevalue(unreal_engine_fixture)
     assert unreal_engine.plugins == expected
 
 
@@ -508,11 +511,11 @@ def test_unreal_engine_plugins(unreal_engine, expected, request):
         # TODO: monkeypatch pkg_resources behavior
     ],
 )
-def test_unreal_engine_find_engine(association, expected):
+def test_unreal_engine_find_engine(association:str, expected:Type[Any]) -> None:
     assert type(engine.UnrealEngine.find_engine(association)) == expected
 
 
-def test_unreal_engine_list_all_engines():
+def test_unreal_engine_list_all_engines() -> None:
     assert isinstance(engine.UnrealEngine.list_all_engines(), types.GeneratorType)
 
     # TODO: monkeypatch pkg_resources behavior
@@ -520,7 +523,7 @@ def test_unreal_engine_list_all_engines():
 
 
 @pytest.mark.parametrize(
-    "unreal_engine,config_category,platform,expected_count",
+    "unreal_engine_fixture,config_category,platform,expected_count",
     [
         ("engine_empty_version_egl_4_26_2", None, None, 1),
         ("engine_empty_version_egl_4_26_2", "", None, 1),
@@ -530,16 +533,16 @@ def test_unreal_engine_list_all_engines():
     ],
 )
 def test_unreal_engine_config_files(
-    unreal_engine, config_category, platform, expected_count, request
-):
-    unreal_engine = request.getfixturevalue(unreal_engine)
+    unreal_engine_fixture:str, config_category:Optional[str], platform:Optional[str], expected_count:int, request:Any
+) -> None:
+    unreal_engine = request.getfixturevalue(unreal_engine_fixture)
     assert (
         len(list(unreal_engine.config_files(config_category, platform)))
         == expected_count
     )
 
 
-def test_unreal_engine_config(engine_empty_version_egl_4_26_2):
+def test_unreal_engine_config(engine_empty_version_egl_4_26_2:engine.UnrealEngine) -> None:
     assert isinstance(
         engine_empty_version_egl_4_26_2.config(), config.UnrealConfigParser
     )

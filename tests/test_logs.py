@@ -1,5 +1,6 @@
 # Standard Library
 import logging
+from typing import Any, Optional, Tuple
 
 # Third Party
 import pytest
@@ -9,27 +10,27 @@ from crazyhusk import logs
 
 
 @pytest.fixture(scope="function")
-def null_filter_engine_run():
+def null_filter_engine_run() -> logs.FilterEngineRun:
     yield logs.FilterEngineRun(None)
 
 
 @pytest.fixture(scope="function")
-def empty_filter_engine_run():
+def empty_filter_engine_run() -> logs.FilterEngineRun:
     yield logs.FilterEngineRun("")
 
 
 @pytest.fixture(scope="function")
-def one_arg_filter_engine_run():
+def one_arg_filter_engine_run() -> logs.FilterEngineRun:
     yield logs.FilterEngineRun("", "arg")
 
 
 @pytest.fixture(scope="function")
-def multi_arg_filter_engine_run():
+def multi_arg_filter_engine_run() -> logs.FilterEngineRun:
     yield logs.FilterEngineRun("", "arg1", "arg2", "arg3")
 
 
 @pytest.mark.parametrize(
-    "filter_engine_run,executable,cmd_args",
+    "filter_engine_run_fixture,executable,cmd_args",
     [
         ("null_filter_engine_run", None, ()),
         ("empty_filter_engine_run", "", ()),
@@ -45,15 +46,15 @@ def multi_arg_filter_engine_run():
         ),
     ],
 )
-def test_filter_engine_run_init(filter_engine_run, executable, cmd_args, request):
-    filter_engine_run = request.getfixturevalue(filter_engine_run)
+def test_filter_engine_run_init(filter_engine_run_fixture:str, executable:Optional[str], cmd_args:Tuple[str], request:Any) -> None:
+    filter_engine_run = request.getfixturevalue(filter_engine_run_fixture)
     assert filter_engine_run.executable == executable
     assert isinstance(filter_engine_run.cmd_args, tuple)
     assert filter_engine_run.cmd_args == cmd_args
 
 
 @pytest.mark.parametrize(
-    "filter_engine_run,executable,cmd_args",
+    "filter_engine_run_fixture,executable,cmd_args",
     [
         ("null_filter_engine_run", None, ()),
         ("empty_filter_engine_run", "", ()),
@@ -70,9 +71,9 @@ def test_filter_engine_run_init(filter_engine_run, executable, cmd_args, request
     ],
 )
 def test_filter_engine_run_filter(
-    filter_engine_run, executable, cmd_args, request, caplog
-):
-    filter_engine_run = request.getfixturevalue(filter_engine_run)
+    filter_engine_run_fixture:str, executable:Optional[str], cmd_args:Tuple[str], request:Any, caplog:Any
+) -> None:
+    filter_engine_run = request.getfixturevalue(filter_engine_run_fixture)
     logger = logging.getLogger("test_filter_engine_run_filter")
     logger.addFilter(filter_engine_run)
     with caplog.at_level(logging.INFO):
@@ -116,8 +117,8 @@ def test_filter_engine_run_filter(
     ],
 )
 def test_filter_ubt_warnings(
-    log_string, levelno, levelname, filename, linenumber, colnumber, sub_msg, caplog
-):
+    log_string:str, levelno:int, levelname:str, filename:Optional[str], linenumber:Optional[str], colnumber:Optional[str], sub_msg:Optional[str], caplog:Any
+) -> None:
     logger = logging.getLogger("test_filter_ubt_warnings")
     logger.addFilter(logs.FilterUBTWarnings())
     with caplog.at_level(logging.INFO):
@@ -156,8 +157,8 @@ def test_filter_ubt_warnings(
     ],
 )
 def test_filter_ue4_logs(
-    log_string, levelno, levelname, created, module, sub_msg, caplog
-):
+    log_string:str, levelno:int, levelname:str, created:Optional[int], module:Optional[str], sub_msg:Optional[str], caplog:Any
+) -> None:
     logger = logging.getLogger("test_filter_ue4_logs")
     logger.addFilter(logs.FilterUE4Logs())
     with caplog.at_level(logging.INFO):

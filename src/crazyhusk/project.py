@@ -316,8 +316,7 @@ class UnrealProject(object):
         else:
             switches.add("-game")
 
-        for switch in extra_switches:
-            switches.add(switch)
+        switches.update(*extra_switches)
 
         params = {
             "ExecCmds": "Automation List; quit",
@@ -362,8 +361,7 @@ class UnrealProject(object):
         else:
             switches.add("-game")
 
-        for switch in extra_switches:
-            switches.add(switch)
+        switches.update(*extra_switches)
 
         params = {
             "ExecCmds": "Automation RunTests " + "+".join(tests) + "; quit",

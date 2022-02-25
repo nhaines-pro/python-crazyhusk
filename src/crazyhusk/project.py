@@ -232,6 +232,11 @@ class UnrealProject(object):
         """Get the project's Saved directory."""
         return os.path.join(self.project_dir, "Saved")
 
+    @property
+    def reports_dir(self) -> str:
+        """Get the project's default Reports directory."""
+        return os.path.join(self.project_dir, "Saved", "Reports")
+
     # crazyhusk.code.listers
     @staticmethod
     def list_project_code_templates(project: UnrealProject) -> Iterable[CodeTemplate]:
@@ -292,6 +297,91 @@ class UnrealProject(object):
                 yield os.path.join(
                     self.config_dir, platform, f"{platform}{config_category}.ini"
                 )
+
+    def list_tests(
+        self, editor: bool = True, *extra_switches: str, **extra_parameters: str
+    ) -> int:
+        """List available automation tests for this project."""
+        switches = {
+            "buildmachine",
+            "unattended",
+            "nopause",
+            "nullrhi",
+            "stdout",
+            "nosplash",
+        }
+
+        if editor:
+            switches.add("editortest")
+        else:
+            switches.add("-game")
+
+        for switch in extra_switches:
+            switches.add(switch)
+
+        params = {
+            "ExecCmds": "Automation List; quit",
+            "TestExit": "Automation Test Queue Empty",
+        }
+        params.update(extra_parameters)
+
+        if self.engine is not None:
+            editor_cmd_path = self.engine.executable_path("UE4Editor-Cmd")
+            if editor_cmd_path is not None:
+                with self.engine:
+                    return self.engine.run(
+                        editor_cmd_path,
+                        f'"{self.project_file}"',
+                        *UnrealEngine.format_commandline_options(*switches, **params),
+                    )
+        return -1
+
+    def run_tests(
+        self,
+        tests: List[str],
+        report_path: Optional[str] = None,
+        editor: bool = True,
+        *extra_switches: str,
+        **extra_parameters: str,
+    ) -> int:
+        """Run named automation tests for this project."""
+        if report_path is None:
+            report_path = self.reports_dir
+
+        switches = {
+            "buildmachine",
+            "unattended",
+            "nopause",
+            "nullrhi",
+            "stdout",
+            "nosplash",
+        }
+
+        if editor:
+            switches.add("editortest")
+        else:
+            switches.add("-game")
+
+        for switch in extra_switches:
+            switches.add(switch)
+
+        params = {
+            "ExecCmds": "Automation RunTests " + "+".join(tests) + "; quit",
+            "TestExit": "Automation Test Queue Empty",
+            "ReportOutputPath": report_path,
+        }
+        params.update(extra_parameters)
+
+        if self.engine is not None:
+            editor_cmd_path = self.engine.executable_path("UE4Editor-Cmd")
+            if editor_cmd_path is not None:
+                with self.engine:
+                    return self.engine.run(
+                        editor_cmd_path,
+                        f'"{self.project_file}"',
+                        *UnrealEngine.format_commandline_options(*switches, **params),
+                    )
+        return -1
 
     def unreal_path_to_file_path(
         self, unreal_path: str, ext: str = ".uasset"

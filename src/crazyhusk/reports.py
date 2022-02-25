@@ -4,7 +4,7 @@
 import datetime
 import json
 import os
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from xml.dom import minidom
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
@@ -104,7 +104,9 @@ def write_junit_xml_report(report_file: str, test_suites: Element) -> None:
         )
 
 
-def json_reports_to_junit_xml(junit_report: str, *json_reports: str) -> None:
+def json_reports_to_junit_xml(
+    junit_file: Optional[str] = None, json_reports: List[str] = []
+) -> None:
     """Convert a JSON report from Unreal automation to jUnit XML format."""
     test_suites = Element("testsuites")
     test_suites.set("name", "Unreal Automation Tests")
@@ -126,4 +128,5 @@ def json_reports_to_junit_xml(junit_report: str, *json_reports: str) -> None:
     test_suites.set("failures", str(total_failures))
     test_suites.set("errors", str(total_errors))
     test_suites.set("time", str(total_time))
-    write_junit_xml_report(junit_report, test_suites)
+    if junit_file is not None:
+        write_junit_xml_report(junit_file, test_suites)

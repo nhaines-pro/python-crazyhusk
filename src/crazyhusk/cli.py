@@ -33,8 +33,7 @@ def set_subcommand_arguments(
         )
 
     fullargs = inspect.getfullargspec(command)
-
-    if fullargs.defaults:
+    if fullargs.defaults is not None:
         firstdefault = len(fullargs.args) - len(fullargs.defaults)
 
     for i, arg in enumerate(fullargs.args):
@@ -43,9 +42,7 @@ def set_subcommand_arguments(
             if default is None:
                 parser.add_argument(dest=arg)
             elif type(default) is tuple or type(default) is list:
-                parser.add_argument(
-                    "--" + arg, default=default, type=type(default), nargs="+"
-                )
+                parser.add_argument("--" + arg, default=default, nargs="+")
             elif type(default) is bool and default:
                 parser.add_argument(
                     "--disable_" + arg, dest=arg, default=default, action="store_false"

@@ -17,9 +17,9 @@ def report_timestamp_to_iso8601_timestamp(timestamp: str) -> str:
 def report_entry_to_entry_xml(entry: Dict[str, Any]) -> Element:
     failure = Element("failure")
     failure.set("type", entry.get("event", {}).get("type", ""))
-    failure.set(
-        "timestamp", report_timestamp_to_iso8601_timestamp(entry.get("timestamp", ""))
-    )
+    timestamp = entry.get("timestamp")
+    if timestamp is not None:
+        failure.set("timestamp", report_timestamp_to_iso8601_timestamp(timestamp))
     failure.set(
         "message",
         f'{entry.get("filename","")}:{entry.get("lineNumber","")} {entry.get("event",{}).get("message","")}',
@@ -43,10 +43,12 @@ def report_object_to_testsuite_xml(report: Dict[str, Any]) -> Element:
     test_suite.set("failures", str(report.get("failed", 0)))
     test_suite.set("skipped", str(report.get("notRun", 0)))
     test_suite.set("time", str(report.get("totalDuration", 0.0)))
-    test_suite.set(
-        "timestamp",
-        report_timestamp_to_iso8601_timestamp(report.get("reportCreatedOn", "")),
-    )
+    timestamp = report.get("reportCreatedOn")
+    if timestamp is not None:
+        test_suite.set(
+            "timestamp",
+            report_timestamp_to_iso8601_timestamp(timestamp),
+        )
 
     branch, changelist, platform = report.get("clientDescriptor", " -  - ").split(" - ")
     properties = Element("properties")

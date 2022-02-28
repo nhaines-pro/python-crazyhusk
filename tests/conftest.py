@@ -8,11 +8,7 @@ import sys
 from types import ModuleType, TracebackType
 from typing import Any, Optional, Type
 
-# Third Party
-from typing_extensions import final
 
-
-@final
 class HKEYType:
     def __bool__(self) -> bool:
         ...

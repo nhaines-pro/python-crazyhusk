@@ -9,7 +9,7 @@ import json
 import logging
 import os
 import subprocess
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Union, TYPE_CHECKING
 
 try:
     # Standard Library
@@ -19,10 +19,13 @@ except ImportError:
     from importlib_metadata import entry_points  # type:ignore
 
 # CrazyHusk
+from crazyhusk.build import Buildable
 from crazyhusk.code import CodeTemplate
 from crazyhusk.config import CONFIG_CATEGORIES, UnrealConfigParser
 from crazyhusk.logs import FilterEngineRun
-from crazyhusk.plugin import UnrealPlugin
+
+if TYPE_CHECKING:
+    from crazyhusk.plugin import UnrealPlugin
 
 __all__ = ["UnrealEngine", "UnrealEngineError"]
 
@@ -115,7 +118,7 @@ class UnrealVersion(object):
         }
 
 
-class UnrealEngine(object):
+class UnrealEngine(Buildable):
     """Object wrapper representing an Unreal Engine."""
 
     def __init__(self, base_dir: str, association_name: Optional[str] = None) -> None:
@@ -223,12 +226,17 @@ class UnrealEngine(object):
         return os.path.join(self.base_dir, "Engine", "Content")
 
     @property
+    def engine(self) -> Optional[UnrealEngine]:
+        return self
+
+    @property
     def plugins_dir(self) -> str:
         """Path to this Engine's Plugins directory."""
         return os.path.join(self.base_dir, "Engine", "Plugins")
 
     @property
     def plugins(self) -> Optional[Dict[str, UnrealPlugin]]:
+        from crazyhusk.plugin import UnrealPlugin
         if self.__plugins is None:
             self.__plugins = {}
             for _root, _dirs, _files in os.walk(self.plugins_dir):
@@ -372,6 +380,19 @@ class UnrealEngine(object):
             if path is not None:
                 return str(path)
         return None
+
+    def get_build_command(
+        self,
+        target: Optional[str] = None,
+        configuration: Optional[str] = None,
+        platform: Optional[str] = None,
+        *extra_switches: str,
+        **extra_parameters: str,
+    ) -> Iterable[str]:
+        ...
+
+    def is_buildable(self) -> bool:
+        return self.is_source_build()
 
     def is_installed_build(self) -> bool:
         """Determine if this engine is an Installed distribution."""

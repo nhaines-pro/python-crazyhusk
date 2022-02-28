@@ -131,6 +131,7 @@ class UnrealEngine(Buildable):
 
         self.base_dir: str = os.path.realpath(base_dir)
         self.association_name: Optional[str] = association_name
+        self.__build_targets: Optional[Dict[str, str]] = None
         self.__version: Optional[UnrealVersion] = None
         self.__in_context: bool = False
         self.__plugins: Optional[Dict[str, UnrealPlugin]] = None
@@ -194,6 +195,17 @@ class UnrealEngine(Buildable):
         return os.path.join(self.base_dir, "Engine", "Build")
 
     @property
+    def build_targets(self) -> Dict[str, str]:
+        if self.__build_targets is None:
+            self.__build_targets = {}
+            for target_file in glob.iglob(
+                os.path.join(self.source_dir, "**", "*.Target.cs"), recursive=True
+            ):
+                target_name = os.path.basename(target_file).split(".")[0]
+                self.__build_targets[target_name] = target_file
+        return self.__build_targets
+
+    @property
     def build_type(self) -> Optional[str]:
         """Type of build available for this Engine."""
         if os.path.isfile(os.path.join(self.build_dir, "InstalledBuild.txt")):
@@ -234,6 +246,10 @@ class UnrealEngine(Buildable):
     def plugins_dir(self) -> str:
         """Path to this Engine's Plugins directory."""
         return os.path.join(self.base_dir, "Engine", "Plugins")
+
+    @property
+    def source_dir(self) -> str:
+        return os.path.join(self.base_dir, "Engine", "Source")
 
     @property
     def plugins(self) -> Optional[Dict[str, UnrealPlugin]]:
@@ -376,6 +392,9 @@ class UnrealEngine(Buildable):
                     self.config_dir, platform, f"{platform}{config_category}.ini"
                 )
 
+    def default_build_target(self) -> str:
+        return "UE4Editor"
+
     def executable_path(self, executable_name: str) -> Optional[str]:
         """Resolve an expected real path for an executable member of this engine for a given executable name."""
         for entry_point in entry_points().get("crazyhusk.engine.resolvers", []):
@@ -392,7 +411,22 @@ class UnrealEngine(Buildable):
         *extra_switches: str,
         **extra_parameters: str,
     ) -> Iterable[str]:
-        ...
+        ubt_path = self.executable_path("UnrealBuildTool")
+        if ubt_path is None:
+            raise UnrealEngineError(
+                f"Could not resolve a valid path to UnrealBuildTool for engine: {self!r}"
+            )
+        yield ubt_path
+        yield target or ""
+        yield configuration or ""
+        yield platform or ""
+
+        switches = {"Progress", "WaitMutex"}
+        switches.update(*extra_switches)
+        for arg in UnrealEngine.format_commandline_options(
+            *switches, **extra_parameters
+        ):
+            yield arg
 
     def is_buildable(self) -> bool:
         return self.is_source_build()
@@ -404,6 +438,9 @@ class UnrealEngine(Buildable):
     def is_source_build(self) -> bool:
         """Determine if this engine is a Source distribution."""
         return os.path.isfile(os.path.join(self.build_dir, "SourceDistribution.txt"))
+
+    def is_valid_build_target(self, target: str) -> bool:
+        return target in self.build_targets
 
     def unreal_path_to_file_path(
         self, unreal_path: str, ext: str = ".uasset"

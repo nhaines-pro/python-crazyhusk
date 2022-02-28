@@ -13,45 +13,6 @@ if TYPE_CHECKING:
     from crazyhusk.engine import UnrealEngine
 
 
-def is_valid_build_target(target: str) -> bool:
-    return target in {"Game", "Editor", "Server"}
-
-
-def is_valid_build_platform(platform: str) -> bool:
-    return platform in {
-        "Win32",
-        "Win64",
-        "Linux",
-        "LinuxAArch64",
-        "Mac",
-        "Android",
-        "IOS",
-    }
-
-
-def is_valid_build_configuration(configuration: str) -> bool:
-    return configuration in {"Debug", "DebugGame", "Development", "Shipping", "Test"}
-
-
-def default_local_platform() -> str:
-    local_system = platform.system()
-    if local_system == "Windows":
-        return "Win64"
-    elif local_system == "Linux":
-        return "Linux"
-    elif local_system == "Darwin":
-        return "Mac"
-    raise NotImplementedError(f"Default build platform for {local_system} not defined.")
-
-
-def default_build_target() -> str:
-    return "Editor"
-
-
-def default_build_configuration() -> str:
-    return "Development"
-
-
 class Buildable(ABC):
     @abstractmethod
     def is_buildable(self) -> bool:
@@ -73,6 +34,47 @@ class Buildable(ABC):
     def engine(self) -> Optional[UnrealEngine]:
         ...
 
+    def is_valid_build_target(self, target: str) -> bool:
+        return target in {"Game", "Editor", "Server"}
+
+    def is_valid_build_platform(self, platform: str) -> bool:
+        return platform in {
+            "Win32",
+            "Win64",
+            "Linux",
+            "LinuxAArch64",
+            "Mac",
+            "Android",
+            "IOS",
+        }
+
+    def is_valid_build_configuration(self, configuration: str) -> bool:
+        return configuration in {
+            "Debug",
+            "DebugGame",
+            "Development",
+            "Shipping",
+            "Test",
+        }
+
+    def default_local_platform(self) -> str:
+        local_system = platform.system()
+        if local_system == "Windows":
+            return "Win64"
+        elif local_system == "Linux":
+            return "Linux"
+        elif local_system == "Darwin":
+            return "Mac"
+        raise NotImplementedError(
+            f"Default build platform for {local_system} not defined."
+        )
+
+    def default_build_target(self) -> str:
+        return "Editor"
+
+    def default_build_configuration(self) -> str:
+        return "Development"
+
 
 class UnrealBuild(object):
     buildable: Buildable
@@ -87,21 +89,21 @@ class UnrealBuild(object):
         configuration: Optional[str] = None,
         build_platform: Optional[str] = None,
     ) -> None:
+        self.buildable = buildable
         if target is None:
-            self.target = default_build_target()
+            self.target = self.buildable.default_build_target()
         else:
             self.target = target
 
         if configuration is None:
-            self.configuration = default_build_configuration()
+            self.configuration = self.buildable.default_build_configuration()
         else:
             self.configuration = configuration
 
         if build_platform is None:
-            self.platform = default_local_platform()
+            self.platform = self.buildable.default_local_platform()
         else:
             self.platform = build_platform
-        self.buildable = buildable
 
     @property
     def target(self) -> str:
@@ -109,7 +111,7 @@ class UnrealBuild(object):
 
     @target.setter
     def target(self, value: str) -> None:
-        if is_valid_build_target(value):
+        if self.buildable.is_valid_build_target(value):
             self.__target = value
 
     @property
@@ -118,7 +120,7 @@ class UnrealBuild(object):
 
     @configuration.setter
     def configuration(self, value: str) -> None:
-        if is_valid_build_configuration(value):
+        if self.buildable.is_valid_build_configuration(value):
             self.__configuration = value
 
     @property
@@ -127,7 +129,7 @@ class UnrealBuild(object):
 
     @platform.setter
     def platform(self, value: str) -> None:
-        if is_valid_build_platform(value):
+        if self.buildable.is_valid_build_platform(value):
             self.__platform = value
 
     def run(

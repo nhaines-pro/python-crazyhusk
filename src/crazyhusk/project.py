@@ -321,7 +321,10 @@ class UnrealProject(Buildable):
         yield platform or ""
         switches = {"Progress", "WaitMutex", "NoHotReloadFromIDE"}
         switches.update(*extra_switches)
-        parameters: Dict[str,str] = {"Project": self.project_file, "TargetType": target or ""}
+        parameters: Dict[str, str] = {
+            "Project": self.project_file,
+            "TargetType": target or "",
+        }
         parameters.update(**extra_parameters)
         for arg in UnrealEngine.format_commandline_options(*switches, **parameters):
             yield arg

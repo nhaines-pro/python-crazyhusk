@@ -9,7 +9,7 @@ import json
 import logging
 import os
 import subprocess
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Set, Tuple, Union
 
 try:
     # Standard Library
@@ -25,6 +25,7 @@ from crazyhusk.config import CONFIG_CATEGORIES, UnrealConfigParser
 from crazyhusk.logs import FilterEngineRun
 
 if TYPE_CHECKING:
+    # CrazyHusk
     from crazyhusk.plugin import UnrealPlugin
 
 __all__ = ["UnrealEngine", "UnrealEngineError"]
@@ -236,7 +237,9 @@ class UnrealEngine(Buildable):
 
     @property
     def plugins(self) -> Optional[Dict[str, UnrealPlugin]]:
+        # CrazyHusk
         from crazyhusk.plugin import UnrealPlugin
+
         if self.__plugins is None:
             self.__plugins = {}
             for _root, _dirs, _files in os.walk(self.plugins_dir):

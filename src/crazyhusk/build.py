@@ -6,9 +6,12 @@ from __future__ import annotations
 # Standard Library
 import platform
 from abc import ABC, abstractmethod
-from typing import Dict, Iterable, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, Iterable, Optional
+
 if TYPE_CHECKING:
+    # CrazyHusk
     from crazyhusk.engine import UnrealEngine
+
 
 def is_valid_build_target(target: str) -> bool:
     return target in {"Game", "Editor", "Server"}

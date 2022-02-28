@@ -18,6 +18,7 @@ except ImportError:
     from importlib_metadata import entry_points  # type:ignore
 
 # CrazyHusk
+from crazyhusk.build import Buildable
 from crazyhusk.code import CodeTemplate
 from crazyhusk.config import CONFIG_CATEGORIES, UnrealConfigParser
 from crazyhusk.engine import UnrealEngine
@@ -109,7 +110,7 @@ class ProjectDescriptor(object):
         self.__modules.append(module.to_dict())
 
 
-class UnrealProject(object):
+class UnrealProject(Buildable):
     """Object wrapper representation of an Unreal Engine project."""
 
     def __init__(self, project_file: str) -> None:
@@ -298,6 +299,39 @@ class UnrealProject(object):
                     self.config_dir, platform, f"{platform}{config_category}.ini"
                 )
 
+    def get_build_command(
+        self,
+        target: Optional[str] = None,
+        configuration: Optional[str] = None,
+        platform: Optional[str] = None,
+        *extra_switches: str,
+        **extra_parameters: str,
+    ) -> Iterable[str]:
+        if self.engine is None:
+            raise UnrealProjectError(
+                f"Could not resolve an associated UnrealEngine for project: {self!r}"
+            )
+        ubt_path = self.engine.executable_path("UnrealBuildTool")
+        if ubt_path is None:
+            raise UnrealProjectError(
+                f"Could not resolve a valid path to UnrealBuildTool for project: {self!r}"
+            )
+        yield ubt_path
+        yield configuration or ""
+        yield platform or ""
+        switches = {"Progress", "WaitMutex", "NoHotReloadFromIDE"}
+        switches.update(*extra_switches)
+        parameters: Dict[str, str] = {
+            "Project": self.project_file,
+            "TargetType": target or "",
+        }
+        parameters.update(**extra_parameters)
+        for arg in UnrealEngine.format_commandline_options(*switches, **parameters):
+            yield arg
+
+    def is_buildable(self) -> bool:
+        return self.engine is not None  # TODO: check for .Target.cs files
+
     def list_tests(
         self, editor: bool = True, *extra_switches: str, **extra_parameters: str
     ) -> int:
@@ -316,8 +350,7 @@ class UnrealProject(object):
         else:
             switches.add("-game")
 
-        for switch in extra_switches:
-            switches.add(switch)
+        switches.update(*extra_switches)
 
         params = {
             "ExecCmds": "Automation List; quit",
@@ -362,8 +395,7 @@ class UnrealProject(object):
         else:
             switches.add("-game")
 
-        for switch in extra_switches:
-            switches.add(switch)
+        switches.update(*extra_switches)
 
         params = {
             "ExecCmds": "Automation RunTests " + "+".join(tests) + "; quit",

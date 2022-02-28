@@ -9,7 +9,7 @@ import json
 import logging
 import os
 import subprocess
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Set, Tuple, Union
 
 try:
     # Standard Library
@@ -19,10 +19,14 @@ except ImportError:
     from importlib_metadata import entry_points  # type:ignore
 
 # CrazyHusk
+from crazyhusk.build import Buildable
 from crazyhusk.code import CodeTemplate
 from crazyhusk.config import CONFIG_CATEGORIES, UnrealConfigParser
 from crazyhusk.logs import FilterEngineRun
-from crazyhusk.plugin import UnrealPlugin
+
+if TYPE_CHECKING:
+    # CrazyHusk
+    from crazyhusk.plugin import UnrealPlugin
 
 __all__ = ["UnrealEngine", "UnrealEngineError"]
 
@@ -115,7 +119,7 @@ class UnrealVersion(object):
         }
 
 
-class UnrealEngine(object):
+class UnrealEngine(Buildable):
     """Object wrapper representing an Unreal Engine."""
 
     def __init__(self, base_dir: str, association_name: Optional[str] = None) -> None:
@@ -127,6 +131,7 @@ class UnrealEngine(object):
 
         self.base_dir: str = os.path.realpath(base_dir)
         self.association_name: Optional[str] = association_name
+        self.__build_targets: Optional[Dict[str, str]] = None
         self.__version: Optional[UnrealVersion] = None
         self.__in_context: bool = False
         self.__plugins: Optional[Dict[str, UnrealPlugin]] = None
@@ -190,6 +195,17 @@ class UnrealEngine(object):
         return os.path.join(self.base_dir, "Engine", "Build")
 
     @property
+    def build_targets(self) -> Dict[str, str]:
+        if self.__build_targets is None:
+            self.__build_targets = {}
+            for target_file in glob.iglob(
+                os.path.join(self.source_dir, "**", "*.Target.cs"), recursive=True
+            ):
+                target_name = os.path.basename(target_file).split(".")[0]
+                self.__build_targets[target_name] = target_file
+        return self.__build_targets
+
+    @property
     def build_type(self) -> Optional[str]:
         """Type of build available for this Engine."""
         if os.path.isfile(os.path.join(self.build_dir, "InstalledBuild.txt")):
@@ -223,12 +239,23 @@ class UnrealEngine(object):
         return os.path.join(self.base_dir, "Engine", "Content")
 
     @property
+    def engine(self) -> Optional[UnrealEngine]:
+        return self
+
+    @property
     def plugins_dir(self) -> str:
         """Path to this Engine's Plugins directory."""
         return os.path.join(self.base_dir, "Engine", "Plugins")
 
     @property
+    def source_dir(self) -> str:
+        return os.path.join(self.base_dir, "Engine", "Source")
+
+    @property
     def plugins(self) -> Optional[Dict[str, UnrealPlugin]]:
+        # CrazyHusk
+        from crazyhusk.plugin import UnrealPlugin
+
         if self.__plugins is None:
             self.__plugins = {}
             for _root, _dirs, _files in os.walk(self.plugins_dir):
@@ -365,6 +392,9 @@ class UnrealEngine(object):
                     self.config_dir, platform, f"{platform}{config_category}.ini"
                 )
 
+    def default_build_target(self) -> str:
+        return "UE4Editor"
+
     def executable_path(self, executable_name: str) -> Optional[str]:
         """Resolve an expected real path for an executable member of this engine for a given executable name."""
         for entry_point in entry_points().get("crazyhusk.engine.resolvers", []):
@@ -373,6 +403,34 @@ class UnrealEngine(object):
                 return str(path)
         return None
 
+    def get_build_command(
+        self,
+        target: Optional[str] = None,
+        configuration: Optional[str] = None,
+        platform: Optional[str] = None,
+        *extra_switches: str,
+        **extra_parameters: str,
+    ) -> Iterable[str]:
+        ubt_path = self.executable_path("UnrealBuildTool")
+        if ubt_path is None:
+            raise UnrealEngineError(
+                f"Could not resolve a valid path to UnrealBuildTool for engine: {self!r}"
+            )
+        yield ubt_path
+        yield target or ""
+        yield configuration or ""
+        yield platform or ""
+
+        switches = {"Progress", "WaitMutex"}
+        switches.update(*extra_switches)
+        for arg in UnrealEngine.format_commandline_options(
+            *switches, **extra_parameters
+        ):
+            yield arg
+
+    def is_buildable(self) -> bool:
+        return self.is_source_build()
+
     def is_installed_build(self) -> bool:
         """Determine if this engine is an Installed distribution."""
         return os.path.isfile(os.path.join(self.build_dir, "InstalledBuild.txt"))
@@ -380,6 +438,9 @@ class UnrealEngine(object):
     def is_source_build(self) -> bool:
         """Determine if this engine is a Source distribution."""
         return os.path.isfile(os.path.join(self.build_dir, "SourceDistribution.txt"))
+
+    def is_valid_build_target(self, target: str) -> bool:
+        return target in self.build_targets
 
     def unreal_path_to_file_path(
         self, unreal_path: str, ext: str = ".uasset"

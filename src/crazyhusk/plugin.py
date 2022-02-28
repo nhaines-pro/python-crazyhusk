@@ -9,6 +9,10 @@ import json
 import os
 from typing import Any, Dict, Iterable, List, Optional, Union
 
+# CrazyHusk
+from crazyhusk.build import Buildable
+from crazyhusk.engine import UnrealEngine
+
 try:
     # Standard Library
     from importlib.metadata import entry_points  # type:ignore
@@ -237,7 +241,7 @@ class PluginReferenceDescriptor(object):
         return self.name is not None and self.name != ""
 
 
-class UnrealPlugin(object):
+class UnrealPlugin(Buildable):
     """Object wrapper representation of an Unreal Engine plugin."""
 
     def __init__(self, plugin_file: str) -> None:
@@ -276,6 +280,10 @@ class UnrealPlugin(object):
                 )
 
         return self.__descriptor
+
+    @property
+    def engine(self) -> Optional[UnrealEngine]:
+        return None
 
     @property
     def modules(self) -> Dict[str, ModuleDescriptor]:
@@ -357,6 +365,19 @@ class UnrealPlugin(object):
             )
         if not os.path.splitext(plugin.plugin_file)[-1] == ".uplugin":
             raise UnrealPluginError(f"Not a uplugin file: {plugin.plugin_file}")
+
+    def get_build_command(
+        self,
+        target: Optional[str] = None,
+        configuration: Optional[str] = None,
+        platform: Optional[str] = None,
+        *extra_switches: str,
+        **extra_parameters: str,
+    ) -> Iterable[str]:
+        ...
+
+    def is_buildable(self) -> bool:
+        return False
 
     def unreal_path_to_file_path(
         self, unreal_path: str, ext: str = ".uasset"

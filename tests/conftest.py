@@ -5,6 +5,7 @@ from __future__ import annotations
 
 # Standard Library
 import sys
+from types import ModuleType, TracebackType
 from typing import Any, Optional, Type
 
 # Third Party
@@ -26,7 +27,7 @@ class HKEYType:
         self,
         exc_type: Optional[Type[BaseException]],
         exc_val: Optional[Type[BaseException]],
-        exc_tb: Optional[Type[BaseException]],
+        exc_tb: Optional[Type[TracebackType]],
     ) -> bool | None:
         ...
 
@@ -49,10 +50,10 @@ def QueryValueEx(__key: Any, __name: str) -> tuple[Any, int]:
     raise OSError()
 
 
-module = type(sys)("winreg")
-module.OpenKey = OpenKey
-module.OpenKeyEx = OpenKeyEx
-module.QueryValueEx = QueryValueEx
-module.HKEY_CURRENT_USER = 1
-module.HKEY_LOCAL_MACHINE = 1
+module = ModuleType("winreg")
+setattr(module, "OpenKey", OpenKey)
+setattr(module, "OpenKeyEx", OpenKeyEx)
+setattr(module, "QueryValueEx", QueryValueEx)
+setattr(module, "HKEY_CURRENT_USER", 1)
+setattr(module, "HKEY_LOCAL_MACHINE", 1)
 sys.modules["winreg"] = module

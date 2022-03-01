@@ -1,4 +1,5 @@
 # CrazyHusk
+
 Dependency-free Python object wrappers for working with Unreal Engine
 
 [![PyPI](https://img.shields.io/pypi/v/crazyhusk.svg)][pypi_]
@@ -9,16 +10,13 @@ Dependency-free Python object wrappers for working with Unreal Engine
 [![Read the documentation at https://crazyhusk.readthedocs.io/](https://img.shields.io/readthedocs/crazyhusk/latest.svg?label=Read%20the%20Docs)][read the docs]
 [![Tests](https://github.com/nhaines-pro/python-crazyhusk/workflows/Tests/badge.svg)][tests]
 [![MyPy](https://github.com/nhaines-pro/python-crazyhusk/workflows/MyPy/badge.svg)][mypy]
-<!-- [![Codecov](https://codecov.io/gh/nhaines-pro/python-crazyhusk/branch/main/graph/badge.svg?token=95K49DG7LD)][codecov] -->
 [![Codecov](https://codecov.io/gh/nhaines-pro/python-crazyhusk/branch/main/graph/badge.svg)][codecov]
-
 
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)][pre-commit]
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
 
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/5620/badge)](https://bestpractices.coreinfrastructure.org/projects/5620)
-
 
 [pypi_]: https://pypi.org/project/crazyhusk/
 [status]: https://pypi.org/project/crazyhusk/

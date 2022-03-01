@@ -109,44 +109,6 @@ def test_report_object_to_testsuite_xml(
         assert isinstance(reports.report_object_to_testsuite_xml(report), Element)
 
 
-@pytest.fixture(scope="function")
-def null_report_file() -> None:
-    return None
-
-
-@pytest.fixture(scope="function")
-def empty_filename_report_file() -> str:
-    return ""
-
-
-@pytest.fixture(scope="function")
-def non_json_report_file(tmp_path: Any) -> str:
-    non_json_file = tmp_path / "non-json.file"
-    non_json_file.write_text("")
-    return str(non_json_file)
-
-
-@pytest.fixture(scope="function")
-def empty_json_report_file(tmp_path: Any) -> str:
-    empty_json_file = tmp_path / "empty.json"
-    empty_json_file.write_text("")
-    return str(empty_json_file)
-
-
-@pytest.fixture(scope="function")
-def list_json_report_file(tmp_path: Any) -> str:
-    list_json_file = tmp_path / "list.json"
-    list_json_file.write_text("[]")
-    return str(list_json_file)
-
-
-@pytest.fixture(scope="function")
-def empty_dict_json_report_file(tmp_path: Any) -> str:
-    empty_dict_json_file = tmp_path / "empty_dict.json"
-    empty_dict_json_file.write_text("{}")
-    return str(empty_dict_json_file)
-
-
 @pytest.mark.parametrize(
     "report_file_fixture,raises",
     [
@@ -166,36 +128,6 @@ def test_json_report_to_dict(
             assert isinstance(reports.json_report_to_dict(report_file), dict)
     else:
         assert isinstance(reports.json_report_to_dict(report_file), dict)
-
-
-@pytest.fixture(scope="function")
-def xml_filename_report_file(tmp_path: Any) -> str:
-    return str(tmp_path / "empty.xml")
-
-
-@pytest.fixture(scope="function")
-def xml_filename_mkdirs_report_file(tmp_path: Any) -> str:
-    return str(tmp_path / "test/empty.xml")
-
-
-@pytest.fixture(scope="function")
-def null_test_suites() -> None:
-    return None
-
-
-@pytest.fixture(scope="function")
-def emptystring_test_suites() -> str:
-    return ""
-
-
-@pytest.fixture(scope="function")
-def empty_element_test_suites() -> Element:
-    return Element("")
-
-
-@pytest.fixture(scope="function")
-def basic_element_test_suites() -> Element:
-    return Element("testsuites")
 
 
 @pytest.mark.parametrize(

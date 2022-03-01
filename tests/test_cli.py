@@ -1,7 +1,7 @@
 # Standard Library
 import argparse
 import inspect
-from typing import Any, Callable, List, Optional, Tuple, Type
+from typing import Any, List, Optional, Tuple, Type
 
 # Third Party
 import pytest
@@ -94,26 +94,6 @@ def test_set_subcommand_arguments_types() -> None:
     )
 
 
-def test() -> None:
-    return
-
-
-class test_entry_point:
-    def __init__(self) -> None:
-        self.name = "test"
-
-    def load(*args: Any) -> Callable[[], None]:
-        return test
-
-
-class null_entry_point:
-    def __init__(self) -> None:
-        self.name = "test"
-
-    def load(*args: Any) -> None:
-        return None
-
-
 @pytest.mark.parametrize(
     "args,raises",
     [
@@ -125,9 +105,14 @@ class null_entry_point:
     ],
 )
 def test_parse_cli_args(
-    args: Optional[List[str]], raises: Optional[Type[BaseException]]
+    args: Optional[List[str]],
+    raises: Optional[Type[BaseException]],
+    monkeypatch: Any,
+    test_entry_point: Any,
 ) -> None:
-    cli.entry_points = lambda: {"crazyhusk.commands": [test_entry_point()]}
+    monkeypatch.setattr(
+        cli, "entry_points", lambda: {"crazyhusk.commands": [test_entry_point]}
+    )
     if raises is not None:
         with pytest.raises(raises):
             assert cli.parse_cli_args(args)
@@ -138,13 +123,19 @@ def test_parse_cli_args(
         assert inspect.isfunction(parsed.command)
 
 
-def test_parse_cli_args_entry_points() -> None:
-    cli.entry_points = lambda: {"crazyhusk.commands": [test_entry_point()]}
+def test_parse_cli_args_entry_points(
+    monkeypatch: Any, test_entry_point: Any, null_entry_point: Any
+) -> None:
+    monkeypatch.setattr(
+        cli, "entry_points", lambda: {"crazyhusk.commands": [test_entry_point]}
+    )
     args = cli.parse_cli_args(["test"])
     assert isinstance(args, argparse.Namespace)
     assert "command" in args
 
-    cli.entry_points = lambda: {"crazyhusk.commands": [null_entry_point()]}
+    monkeypatch.setattr(
+        cli, "entry_points", lambda: {"crazyhusk.commands": [null_entry_point]}
+    )
     with pytest.raises(SystemExit):
         assert cli.parse_cli_args(["test"]) is None
 
@@ -160,9 +151,14 @@ def test_parse_cli_args_entry_points() -> None:
     ],
 )
 def test_cli_run(
-    args: Optional[List[str]], raises: Optional[Tuple[Type[BaseException]]]
+    args: Optional[List[str]],
+    raises: Optional[Tuple[Type[BaseException]]],
+    monkeypatch: Any,
+    test_entry_point: Any,
 ) -> None:
-    cli.entry_points = lambda: {"crazyhusk.commands": [test_entry_point()]}
+    monkeypatch.setattr(
+        cli, "entry_points", lambda: {"crazyhusk.commands": [test_entry_point]}
+    )
     if raises is not None:
         with pytest.raises(raises):
             assert cli.run(args) is None
@@ -170,6 +166,8 @@ def test_cli_run(
         assert cli.run(args) is None
 
 
-def test_cli_run_entry_points() -> None:
-    cli.entry_points = lambda: {"crazyhusk.commands": [test_entry_point()]}
+def test_cli_run_entry_points(monkeypatch: Any, test_entry_point: Any) -> None:
+    monkeypatch.setattr(
+        cli, "entry_points", lambda: {"crazyhusk.commands": [test_entry_point]}
+    )
     assert cli.run(["test"]) is None

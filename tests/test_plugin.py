@@ -2,76 +2,13 @@
 import json
 import os
 import types
-from typing import Any, Callable, Dict, Iterable, Optional, Type
+from typing import Any, Dict, Iterable, Optional, Type
 
 # Third Party
 import pytest
 
 # CrazyHusk
 from crazyhusk import code, module, plugin
-
-
-@pytest.fixture(scope="function")
-def null_name_plugin_descriptor() -> plugin.PluginDescriptor:
-    _plugin = plugin.PluginDescriptor()
-    _plugin.friendly_name = None
-    yield _plugin
-
-
-@pytest.fixture(scope="function")
-def empty_name_plugin_descriptor() -> plugin.PluginDescriptor:
-    yield plugin.PluginDescriptor()
-
-
-@pytest.fixture(scope="function")
-def null_version_plugin_descriptor() -> plugin.PluginDescriptor:
-    _plugin = plugin.PluginDescriptor()
-    _plugin.friendly_name = "NullVersion"
-    _plugin.version_name = None
-    yield _plugin
-
-
-@pytest.fixture(scope="function")
-def empty_version_plugin_descriptor() -> plugin.PluginDescriptor:
-    _plugin = plugin.PluginDescriptor()
-    _plugin.friendly_name = "EmptyVersion"
-    yield _plugin
-
-
-@pytest.fixture(scope="function")
-def basic_plugin_descriptor() -> plugin.PluginDescriptor:
-    _plugin = plugin.PluginDescriptor()
-    _plugin.friendly_name = "Basic"
-    _plugin.version_name = "1.0"
-    yield _plugin
-
-
-@pytest.fixture(scope="function")
-def default_valid_module_descriptor() -> module.ModuleDescriptor:
-    descriptor = module.ModuleDescriptor()
-    descriptor.name = "DefaultValid"
-    descriptor.host_type = "Runtime"
-    descriptor.loading_phase = "Default"
-    yield descriptor
-
-
-@pytest.fixture(scope="function")
-def basic_plugin_descriptor_withmodule(
-    basic_plugin_descriptor: plugin.PluginDescriptor,
-    default_valid_module_descriptor: module.ModuleDescriptor,
-) -> plugin.PluginDescriptor:
-    basic_plugin_descriptor.add_module(default_valid_module_descriptor)
-    yield basic_plugin_descriptor
-
-
-@pytest.fixture(scope="function")
-def basic_plugin_descriptor_withmodule_dict(
-    basic_plugin_descriptor: plugin.PluginDescriptor,
-    default_valid_module_descriptor: module.ModuleDescriptor,
-) -> Iterable[Dict[str, Any]]:
-    dct = basic_plugin_descriptor.to_dict()
-    dct["Modules"].append(default_valid_module_descriptor.to_dict())
-    yield dct
 
 
 def test_plugin_descriptor_init(
@@ -177,25 +114,6 @@ def test_plugin_descriptor_add_module(
 # PluginReferenceDescriptor tests
 
 
-@pytest.fixture(scope="function")
-def null_plugin_reference_descriptor() -> plugin.PluginReferenceDescriptor:
-    yield plugin.PluginReferenceDescriptor()
-
-
-@pytest.fixture(scope="function")
-def empty_plugin_reference_descriptor() -> plugin.PluginReferenceDescriptor:
-    ref = plugin.PluginReferenceDescriptor()
-    ref.name = ""
-    yield ref
-
-
-@pytest.fixture(scope="function")
-def basic_plugin_reference_descriptor() -> plugin.PluginReferenceDescriptor:
-    ref = plugin.PluginReferenceDescriptor()
-    ref.name = "Basic"
-    yield ref
-
-
 def test_plugin_reference_descriptor_init(
     null_plugin_reference_descriptor: plugin.PluginReferenceDescriptor,
 ) -> None:
@@ -249,40 +167,6 @@ def test_plugin_reference_descriptor_to_object(
 
 
 # UnrealPlugin tests
-@pytest.fixture(scope="function")
-def empty_unreal_plugin() -> plugin.UnrealPlugin:
-    yield plugin.UnrealPlugin("")
-
-
-@pytest.fixture(scope="function")
-def local_dir_unreal_plugin() -> plugin.UnrealPlugin:
-    yield plugin.UnrealPlugin(".")
-
-
-@pytest.fixture(scope="function")
-def invalid_file_unreal_plugin() -> plugin.UnrealPlugin:
-    yield plugin.UnrealPlugin("./test.txt")
-
-
-@pytest.fixture(scope="function")
-def invalid_file_unreal_plugin_realpath() -> plugin.UnrealPlugin:
-    yield plugin.UnrealPlugin(os.path.realpath("./test.txt"))
-
-
-@pytest.fixture(scope="function")
-def empty_file_content_unreal_plugin(tmp_path: Any) -> plugin.UnrealPlugin:
-    plugin_file = tmp_path / "Invalid.uplugin"
-    plugin_file.write_text("")
-    yield plugin.UnrealPlugin(plugin_file)
-
-
-@pytest.fixture(scope="function")
-def basic_unreal_plugin(
-    tmp_path: Any, basic_plugin_descriptor_withmodule_dict: Iterable[Dict[str, Any]]
-) -> plugin.UnrealPlugin:
-    plugin_file = tmp_path / "Basic.uplugin"
-    plugin_file.write_text(json.dumps(basic_plugin_descriptor_withmodule_dict))
-    yield plugin.UnrealPlugin(plugin_file)
 
 
 @pytest.mark.parametrize(
@@ -489,29 +373,15 @@ def test_unreal_plugin_list_plugin_code_templates(
     )
 
 
-def test(*args: Any) -> None:
-    return
-
-
-class test_entry_point:
-    def __init__(self) -> None:
-        self.name = "test"
-
-    def load(*args: Any) -> Callable[[], None]:
-        return test
-
-
-class null_entry_point:
-    def __init__(self) -> None:
-        self.name = "test"
-
-    def load(*args: Any) -> None:
-        return None
-
-
-def test_unreal_plugin_validate(basic_unreal_plugin: plugin.UnrealPlugin) -> None:
-    plugin.entry_points = lambda: {}
+def test_unreal_plugin_validate(
+    basic_unreal_plugin: plugin.UnrealPlugin, monkeypatch: Any, test_entry_point: Any
+) -> None:
+    monkeypatch.setattr(plugin, "entry_points", lambda: {})
     assert basic_unreal_plugin.validate() is None
 
-    plugin.entry_points = lambda: {"crazyhusk.plugin.validators": [test_entry_point()]}
+    monkeypatch.setattr(
+        plugin,
+        "entry_points",
+        lambda: {"crazyhusk.plugin.validators": [test_entry_point]},
+    )
     assert basic_unreal_plugin.validate() is None

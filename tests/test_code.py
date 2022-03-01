@@ -8,33 +8,6 @@ import pytest
 from crazyhusk import code
 
 
-@pytest.fixture(scope="function")
-def null_code_template() -> code.CodeTemplate:
-    yield code.CodeTemplate(None)
-
-
-@pytest.fixture(scope="function")
-def empty_code_template() -> code.CodeTemplate:
-    yield code.CodeTemplate("")
-
-
-@pytest.fixture(scope="function")
-def basic_code_template() -> code.CodeTemplate:
-    yield code.CodeTemplate("Basic", "%TEST_TOKEN%")
-
-
-@pytest.fixture(scope="function")
-def multiline_basic_code_template() -> code.CodeTemplate:
-    yield code.CodeTemplate("MultilineBasic", "//%TEST_TOKEN%\n//%TEST_TOKEN%")
-
-
-@pytest.fixture(scope="function")
-def multiline_multitoken_code_template() -> code.CodeTemplate:
-    yield code.CodeTemplate(
-        "MultilineMultitoken", r"//%TEST_TOKEN_1%\n//%TEST_TOKEN_2%"
-    )
-
-
 @pytest.mark.parametrize(
     "code_template_fixture,name,template_string,tokens",
     [

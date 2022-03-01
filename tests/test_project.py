@@ -1,82 +1,13 @@
 # Standard Library
-import json
 import os
 import types
-from typing import Any, Callable, Dict, Iterable, Optional, Type
+from typing import Any, Dict, Optional, Type
 
 # Third Party
 import pytest
 
 # CrazyHusk
 from crazyhusk import code, config, engine, module, plugin, project
-
-
-@pytest.fixture(scope="function")
-def null_association_project_descriptor() -> project.ProjectDescriptor:
-    yield project.ProjectDescriptor()
-
-
-@pytest.fixture(scope="function")
-def empty_association_project_descriptor() -> project.ProjectDescriptor:
-    _project = project.ProjectDescriptor()
-    _project.engine_association = ""
-    yield _project
-
-
-@pytest.fixture(scope="function")
-def basic_project_descriptor() -> project.ProjectDescriptor:
-    _project = project.ProjectDescriptor()
-    _project.description = "Basic"
-    _project.engine_association = ""
-    yield _project
-
-
-@pytest.fixture(scope="function")
-def default_valid_module_descriptor() -> module.ModuleDescriptor:
-    descriptor = module.ModuleDescriptor()
-    descriptor.name = "DefaultValid"
-    descriptor.host_type = "Runtime"
-    descriptor.loading_phase = "Default"
-    yield descriptor
-
-
-@pytest.fixture(scope="function")
-def basic_project_descriptor_withmodule(
-    basic_project_descriptor: project.ProjectDescriptor,
-    default_valid_module_descriptor: module.ModuleDescriptor,
-) -> project.ProjectDescriptor:
-    basic_project_descriptor.add_module(default_valid_module_descriptor)
-    yield basic_project_descriptor
-
-
-@pytest.fixture(scope="function")
-def basic_project_descriptor_withmodule_dict(
-    basic_project_descriptor: project.ProjectDescriptor,
-    default_valid_module_descriptor: module.ModuleDescriptor,
-) -> Iterable[Dict[str, Any]]:
-    dct = basic_project_descriptor.to_dict()
-    dct["Modules"].append(default_valid_module_descriptor.to_dict())
-    yield dct
-
-
-def test(*args: Any) -> None:
-    return
-
-
-class test_entry_point:
-    def __init__(self) -> None:
-        self.name = "test"
-
-    def load(*args: Any) -> Callable[[], None]:
-        return test
-
-
-class null_entry_point:
-    def __init__(self) -> None:
-        self.name = "test"
-
-    def load(*args: Any) -> None:
-        return None
 
 
 def test_project_descriptor_init(
@@ -155,66 +86,6 @@ def test_project_descriptor_add_module(
 
 
 # UnrealProject tests
-
-
-@pytest.fixture(scope="function")
-def null_filename_unreal_project() -> project.UnrealProject:
-    yield project.UnrealProject(None)
-
-
-@pytest.fixture(scope="function")
-def empty_filename_unreal_project() -> project.UnrealProject:
-    yield project.UnrealProject("")
-
-
-@pytest.fixture(scope="function")
-def invalid_filename_unreal_project() -> project.UnrealProject:
-    yield project.UnrealProject("MyProject.txt")
-
-
-@pytest.fixture(scope="function")
-def empty_file_unreal_project() -> project.UnrealProject:
-    yield project.UnrealProject("MyProject.uproject")
-
-
-@pytest.fixture(scope="function")
-def empty_file_content_unreal_project(tmp_path: Any) -> project.UnrealProject:
-    project_file = tmp_path / "MyProject.uproject"
-    project_file.write_text("")
-    yield project.UnrealProject(project_file)
-
-
-@pytest.fixture(scope="function")
-def null_engine_unreal_project(tmp_path: Any) -> project.UnrealProject:
-    project.entry_points = lambda: {}
-    project_file = tmp_path / "MyProject.uproject"
-    project_file.write_text('{"EngineAssociation":"123456"}')
-    _project = project.UnrealProject(project_file)
-    _project.engine = None
-    yield _project
-
-
-@pytest.fixture(scope="function")
-def basic_unreal_project(
-    tmp_path: Any, basic_project_descriptor_withmodule_dict: Iterable[Dict[str, Any]]
-) -> project.UnrealProject:
-    project_file = tmp_path / "MyProject.uproject"
-    project_file.write_text(json.dumps(basic_project_descriptor_withmodule_dict))
-    yield project.UnrealProject(project_file)
-
-
-@pytest.fixture(scope="function")
-def basic_unreal_project_realpath(
-    basic_project_descriptor_withmodule_dict: Iterable[Dict[str, Any]]
-) -> project.UnrealProject:
-    project_file = os.path.realpath("./MyProject.uproject")
-    engine_dir = os.path.realpath("../Engine")
-    os.makedirs(engine_dir, exist_ok=True)
-    with open(project_file, "w", encoding="utf-8") as _file:
-        json.dump(basic_project_descriptor_withmodule_dict, _file)
-    yield project.UnrealProject(project_file)
-    os.remove(project_file)
-    os.removedirs(engine_dir)
 
 
 @pytest.mark.parametrize(
@@ -326,8 +197,10 @@ def test_unreal_project_modules(
         assert isinstance(_module, expected_type)
 
 
-def test_unreal_project_descriptor(basic_unreal_project: project.UnrealProject) -> None:
-    project.entry_points = lambda: {}
+def test_unreal_project_descriptor(
+    basic_unreal_project: project.UnrealProject, monkeypatch: Any
+) -> None:
+    monkeypatch.setattr(project, "entry_points", lambda: {})
     assert isinstance(basic_unreal_project.descriptor, project.ProjectDescriptor)
 
 
@@ -426,9 +299,9 @@ def test_unreal_project_plugins(
 
 
 def test_unreal_project_code_templates(
-    basic_unreal_project_realpath: project.UnrealProject,
+    basic_unreal_project_realpath: project.UnrealProject, monkeypatch: Any
 ) -> None:
-    project.entry_points = lambda: {}
+    monkeypatch.setattr(project, "entry_points", lambda: {})
     for _name, _plugin in basic_unreal_project_realpath.code_templates.items():
         assert isinstance(_name, str)
         assert isinstance(_plugin, code.CodeTemplate)
@@ -457,8 +330,9 @@ def test_unreal_project_config_files(
 def test_unreal_project_config(
     basic_unreal_project_realpath: project.UnrealProject,
     empty_file_unreal_project: project.UnrealProject,
+    monkeypatch: Any,
 ) -> None:
-    project.entry_points = lambda: {}
+    monkeypatch.setattr(project, "entry_points", lambda: {})
     assert isinstance(basic_unreal_project_realpath.config(), config.UnrealConfigParser)
     assert isinstance(empty_file_unreal_project.config(), config.UnrealConfigParser)
 
@@ -466,8 +340,9 @@ def test_unreal_project_config(
 def test_unreal_project_engine(
     basic_unreal_project_realpath: project.UnrealProject,
     null_engine_unreal_project: project.UnrealProject,
+    monkeypatch: Any,
 ) -> None:
-    project.entry_points = lambda: {}
+    monkeypatch.setattr(project, "entry_points", lambda: {})
     assert isinstance(basic_unreal_project_realpath.engine, engine.UnrealEngine)
     assert null_engine_unreal_project.engine is None
 

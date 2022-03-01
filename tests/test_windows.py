@@ -1,6 +1,5 @@
 # Standard Library
-import json
-from typing import Any, Iterable
+from typing import Any
 
 # Third Party
 import pytest
@@ -9,29 +8,6 @@ import pytest
 import crazyhusk.windows
 from crazyhusk.engine import UnrealEngine
 from crazyhusk.windows import engine
-
-
-@pytest.fixture(scope="function")
-def basic_datfile(tmp_path: Any) -> Iterable[str]:
-    yield json.dumps(
-        {
-            "InstallationList": [
-                {
-                    "InstallLocation": "C:\\EpicStore\\UE_4.26",
-                    "NamespaceId": "ue",
-                    "ItemId": "3ddb1bad6e004b99a7192c1a29f2318a",
-                    "ArtifactId": "UE_4.26",
-                    "AppVersion": "4.26.2-15973114+++UE4+Release-4.26-Windows",
-                    "AppName": "UE_4.26",
-                },
-            ]
-        }
-    )
-
-
-@pytest.fixture(scope="function")
-def engine_local() -> engine.UnrealEngine:
-    yield engine.UnrealEngine(".")
 
 
 def test_find_egl_engine_windows_no_datfile(tmp_path: Any, monkeypatch: Any) -> None:

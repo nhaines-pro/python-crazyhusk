@@ -1,5 +1,4 @@
 # Standard Library
-import json
 import os
 import types
 from typing import Any, Dict, Optional, Type
@@ -11,71 +10,6 @@ import pytest
 from crazyhusk import config, engine
 from crazyhusk.code import CodeTemplate
 from crazyhusk.plugin import UnrealPlugin
-
-
-@pytest.fixture(scope="function")
-def version_empty() -> engine.UnrealVersion:
-    yield engine.UnrealVersion()
-
-
-@pytest.fixture(scope="function")
-def version_5_0() -> engine.UnrealVersion:
-    version = engine.UnrealVersion()
-    version.major = 5
-    yield version
-
-
-@pytest.fixture(scope="function")
-def version_26_0() -> engine.UnrealVersion:
-    version = engine.UnrealVersion()
-    version.minor = 26
-    return version
-
-
-@pytest.fixture(scope="function")
-def version_26_1() -> engine.UnrealVersion:
-    version = engine.UnrealVersion()
-    version.minor = 26
-    version.patch = 1
-    return version
-
-
-@pytest.fixture(scope="function")
-def version_26_1_123456() -> engine.UnrealVersion:
-    version = engine.UnrealVersion()
-    version.minor = 26
-    version.patch = 1
-    version.changelist = 123456
-    return version
-
-
-@pytest.fixture(scope="function")
-def version_26_1_234567() -> engine.UnrealVersion:
-    version = engine.UnrealVersion()
-    version.minor = 26
-    version.patch = 1
-    version.changelist = 234567
-    return version
-
-
-@pytest.fixture(scope="function")
-def version_26_1_123456_branch() -> engine.UnrealVersion:
-    version = engine.UnrealVersion()
-    version.minor = 26
-    version.patch = 1
-    version.changelist = 123456
-    version.branch = "++UE4+Release-4.26"
-    return version
-
-
-@pytest.fixture(scope="function")
-def version_egl_4_26_2() -> engine.UnrealVersion:
-    version = engine.UnrealVersion()
-    version.minor = 26
-    version.patch = 2
-    version.changelist = 15973114
-    version.branch = "++UE4+Release-4.26"
-    return version
 
 
 @pytest.mark.parametrize(
@@ -236,54 +170,6 @@ def test_unreal_engine_init(
             assert engine.UnrealEngine(base_dir)
     else:
         assert engine.UnrealEngine(base_dir).base_dir == expected
-
-
-@pytest.fixture(scope="function")
-def engine_empty(tmp_path: Any) -> engine.UnrealEngine:
-    yield engine.UnrealEngine(tmp_path / "Empty")
-
-
-@pytest.fixture(scope="function")
-def engine_local() -> engine.UnrealEngine:
-    yield engine.UnrealEngine(".")
-
-
-@pytest.fixture(scope="function")
-def engine_empty_version_empty(
-    tmp_path: Any, version_empty: engine.UnrealVersion
-) -> engine.UnrealEngine:
-    tmp_engine_dir = tmp_path / "EmptyVersion"
-    tmp_engine_dir.mkdir()
-    engine_dir = tmp_engine_dir / "Engine"
-    engine_dir.mkdir()
-    build_dir = engine_dir / "Build"
-    build_dir.mkdir()
-    version_file = build_dir / "Build.version"
-    version_file.write_text(json.dumps(version_empty.to_dict()))
-    source_file = build_dir / "SourceDistribution.txt"
-    source_file.write_text("")
-    yield engine.UnrealEngine(tmp_engine_dir)
-
-
-@pytest.fixture(scope="function")
-def engine_empty_version_egl_4_26_2(
-    tmp_path: Any, version_egl_4_26_2: engine.UnrealVersion
-) -> engine.UnrealEngine:
-    tmp_engine_dir = tmp_path / "EGL4.26.2"
-    tmp_engine_dir.mkdir()
-    engine_dir = tmp_engine_dir / "Engine"
-    engine_dir.mkdir()
-    build_dir = engine_dir / "Build"
-    build_dir.mkdir()
-    version_file = build_dir / "Build.version"
-    version_file.write_text(json.dumps(version_egl_4_26_2.to_dict()))
-    installed_file = build_dir / "InstalledBuild.txt"
-    installed_file.write_text("")
-    config_dir = engine_dir / "Config"
-    config_dir.mkdir()
-    base_config_file = config_dir / "Base.ini"
-    base_config_file.write_text("")
-    yield engine.UnrealEngine(tmp_engine_dir)
 
 
 def test_unreal_engine_repr(engine_empty: engine.UnrealEngine) -> None:

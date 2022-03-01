@@ -8,44 +8,6 @@ import pytest
 from crazyhusk import module
 
 
-@pytest.fixture(scope="function")
-def null_module_descriptor() -> module.ModuleDescriptor:
-    yield module.ModuleDescriptor()
-
-
-@pytest.fixture(scope="function")
-def empty_module_descriptor() -> module.ModuleDescriptor:
-    descriptor = module.ModuleDescriptor()
-    descriptor.name = ""
-    yield descriptor
-
-
-@pytest.fixture(scope="function")
-def invalid_hosttype_module_descriptor() -> module.ModuleDescriptor:
-    descriptor = module.ModuleDescriptor()
-    descriptor.name = "InvalidHostType"
-    descriptor.host_type = "Invalid"
-    yield descriptor
-
-
-@pytest.fixture(scope="function")
-def invalid_loadingphase_module_descriptor() -> module.ModuleDescriptor:
-    descriptor = module.ModuleDescriptor()
-    descriptor.name = "InvalidLoadingPhase"
-    descriptor.host_type = "Runtime"
-    descriptor.loading_phase = "Invalid"
-    yield descriptor
-
-
-@pytest.fixture(scope="function")
-def default_valid_module_descriptor() -> module.ModuleDescriptor:
-    descriptor = module.ModuleDescriptor()
-    descriptor.name = "DefaultValid"
-    descriptor.host_type = "Runtime"
-    descriptor.loading_phase = "Default"
-    yield descriptor
-
-
 def test_module_descriptor_init(
     null_module_descriptor: module.ModuleDescriptor,
 ) -> None:

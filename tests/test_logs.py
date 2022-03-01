@@ -9,26 +9,6 @@ import pytest
 from crazyhusk import logs
 
 
-@pytest.fixture(scope="function")
-def null_filter_engine_run() -> logs.FilterEngineRun:
-    yield logs.FilterEngineRun(None)
-
-
-@pytest.fixture(scope="function")
-def empty_filter_engine_run() -> logs.FilterEngineRun:
-    yield logs.FilterEngineRun("")
-
-
-@pytest.fixture(scope="function")
-def one_arg_filter_engine_run() -> logs.FilterEngineRun:
-    yield logs.FilterEngineRun("", "arg")
-
-
-@pytest.fixture(scope="function")
-def multi_arg_filter_engine_run() -> logs.FilterEngineRun:
-    yield logs.FilterEngineRun("", "arg1", "arg2", "arg3")
-
-
 @pytest.mark.parametrize(
     "filter_engine_run_fixture,executable,cmd_args",
     [

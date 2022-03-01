@@ -1,17 +1,11 @@
 # Standard Library
 import configparser
-from typing import Any
 
 # Third Party
 import pytest
 
 # CrazyHusk
 from crazyhusk import config
-
-
-@pytest.fixture(scope="function")
-def empty_parser() -> config.UnrealConfigParser:
-    yield config.UnrealConfigParser()
 
 
 def test_config_init(empty_parser: config.UnrealConfigParser) -> None:

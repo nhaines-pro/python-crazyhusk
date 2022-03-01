@@ -8,48 +8,51 @@ import sys
 from types import ModuleType, TracebackType
 from typing import Any, Optional, Type
 
-
-class HKEYType:
-    def __bool__(self) -> bool:
-        ...
-
-    def __int__(self) -> int:
-        ...
-
-    def __enter__(self) -> HKEYType:
-        ...
-
-    def __exit__(
-        self,
-        exc_type: Optional[Type[BaseException]],
-        exc_val: Optional[Type[BaseException]],
-        exc_tb: Optional[Type[TracebackType]],
-    ) -> bool | None:
-        ...
-
-    def Close(self) -> None:
-        ...
-
-    def Detach(self) -> int:
-        ...
+# Third Party
+import pytest
 
 
-def OpenKey(key: Any, sub_key: str, reserved: int = 0, access: int = 0) -> HKEYType:
-    raise OSError()
+@pytest.fixture(scope="function")
+def mock_winreg(monkeypatch: Any) -> None:
+    class HKEYType:
+        def __bool__(self) -> bool:
+            ...
 
+        def __int__(self) -> int:
+            ...
 
-def OpenKeyEx(key: Any, sub_key: str, reserved: int = 0, access: int = 0) -> HKEYType:
-    raise OSError()
+        def __enter__(self) -> HKEYType:
+            ...
 
+        def __exit__(
+            self,
+            exc_type: Optional[Type[BaseException]],
+            exc_val: Optional[Type[BaseException]],
+            exc_tb: Optional[Type[TracebackType]],
+        ) -> bool | None:
+            ...
 
-def QueryValueEx(__key: Any, __name: str) -> tuple[Any, int]:
-    raise OSError()
+        def Close(self) -> None:
+            ...
 
+        def Detach(self) -> int:
+            ...
 
-module = ModuleType("winreg")
-setattr(module, "OpenKey", OpenKey)
-setattr(module, "OpenKeyEx", OpenKeyEx)
-setattr(module, "QueryValueEx", QueryValueEx)
-setattr(module, "HKEY_CURRENT_USER", 1)
-setattr(module, "HKEY_LOCAL_MACHINE", 1)
-sys.modules["winreg"] = module
+    def OpenKey(key: Any, sub_key: str, reserved: int = 0, access: int = 0) -> HKEYType:
+        raise OSError()
+
+    def OpenKeyEx(
+        key: Any, sub_key: str, reserved: int = 0, access: int = 0
+    ) -> HKEYType:
+        raise OSError()
+
+    def QueryValueEx(__key: Any, __name: str) -> tuple[Any, int]:
+        raise OSError()
+
+    module = ModuleType("winreg")
+    setattr(module, "OpenKey", OpenKey)
+    setattr(module, "OpenKeyEx", OpenKeyEx)
+    setattr(module, "QueryValueEx", QueryValueEx)
+    setattr(module, "HKEY_CURRENT_USER", 1)
+    setattr(module, "HKEY_LOCAL_MACHINE", 1)
+    monkeypatch.setitem(sys.modules, "winreg", module)

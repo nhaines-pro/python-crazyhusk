@@ -83,13 +83,13 @@ def test_list_egl_engine_windows_with_datfile(
         assert isinstance(_engine, UnrealEngine)
 
 
-def test_registry_nonwindows(monkeypatch: Any) -> None:
+def test_registry_nonwindows(monkeypatch: Any, mock_winreg: Any) -> None:
     monkeypatch.setattr("platform.system", lambda: "NotWindows")
     assert engine.find_registered_engines_windows("random_string") is None
     assert len(list(engine.list_registered_engines_windows())) == 0
 
 
-def test_registry_windows(monkeypatch: Any) -> None:
+def test_registry_windows(monkeypatch: Any, mock_winreg: Any) -> None:
     monkeypatch.setattr("platform.system", lambda: "Windows")
     assert engine.find_registered_engines_windows("random_string") is None
     assert len(list(engine.list_registered_engines_windows())) == 0

@@ -4,12 +4,13 @@ Dependency-free Python object wrappers for working with Unreal Engine
 [![PyPI](https://img.shields.io/pypi/v/crazyhusk.svg)][pypi_]
 [![Status](https://img.shields.io/pypi/status/crazyhusk.svg)][status]
 [![Python Version](https://img.shields.io/pypi/pyversions/crazyhusk)][python version]
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)[license]
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)][license]
 
 [![Read the documentation at https://crazyhusk.readthedocs.io/](https://img.shields.io/readthedocs/crazyhusk/latest.svg?label=Read%20the%20Docs)][read the docs]
-![Tests](https://github.com/nhaines-pro/python-crazyhusk/actions/workflows/tests.yml/badge.svg)[tests]
-![MyPy](https://github.com/nhaines-pro/python-crazyhusk/actions/workflows/mypy.yml/badge.svg)[mypy]
-[![Codecov](https://codecov.io/gh/nhaines-pro/python-crazyhusk/branch/main/graph/badge.svg?token=95K49DG7LD)](https://codecov.io/gh/nhaines-pro/python-crazyhusk)[codecov]
+[![Tests](https://github.com/nhaines-pro/python-crazyhusk/workflows/Tests/badge.svg)][tests]
+[![MyPy](https://github.com/nhaines-pro/python-crazyhusk/workflows/MyPy/badge.svg)][mypy]
+<!-- [![Codecov](https://codecov.io/gh/nhaines-pro/python-crazyhusk/branch/main/graph/badge.svg?token=95K49DG7LD)][codecov] -->
+[![Codecov](https://codecov.io/gh/nhaines-pro/python-crazyhusk/branch/main/graph/badge.svg)][codecov]
 
 
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)][pre-commit]
@@ -24,6 +25,7 @@ Dependency-free Python object wrappers for working with Unreal Engine
 [python version]: https://pypi.org/project/crazyhusk
 [read the docs]: https://crazyhusk.readthedocs.io/
 [tests]: https://github.com/nhaines-pro/python-crazyhusk/actions?workflow=Tests
+[mypy]: https://github.com/nhaines-pro/python-crazyhusk/actions?workflow=MyPy
 [codecov]: https://app.codecov.io/gh/nhaines-pro/python-crazyhusk
 [pre-commit]: https://github.com/pre-commit/pre-commit
 [black]: https://github.com/psf/black
@@ -63,13 +65,7 @@ _CrazyHusk_ is free and open source software.
 If you encounter any problems,
 please [file an issue] along with a detailed description.
 
-## Credits
-
-This project was generated from [@cjolowicz]'s [Hypermodern Python Cookiecutter] template.
-
-[@cjolowicz]: https://github.com/cjolowicz
 [pypi]: https://pypi.org/
-[hypermodern python cookiecutter]: https://github.com/cjolowicz/cookiecutter-hypermodern-python
 [file an issue]: https://github.com/nhaines-pro/python-crazyhusk/issues
 [pip]: https://pip.pypa.io/
 

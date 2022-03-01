@@ -1,7 +1,6 @@
 
-            Fonts used: LeagueGothic-Italic,Lato-Italic 
+            Fonts used: LeagueGothic-Italic,Lato-Italic
 
-            Colors used: E79115,2E2929  
+            Colors used: E79115,2E2929
 
-            Icon url: https://thenounproject.com/term/crazy-strange-monster/4180292  
-        
+            Icon url: https://thenounproject.com/term/crazy-strange-monster/4180292

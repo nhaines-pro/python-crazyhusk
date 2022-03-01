@@ -45,19 +45,23 @@ def mock_winreg(monkeypatch: Any) -> None:
             ...
 
     def OpenKey(key: Any, sub_key: str, reserved: int = 0, access: int = 0) -> HKEYType:
-        raise OSError()
+        return HKEYType()
 
     def OpenKeyEx(
         key: Any, sub_key: str, reserved: int = 0, access: int = 0
     ) -> HKEYType:
+        return HKEYType()
+
+    def EnumValue(key: HKEYType, index: int) -> tuple[str, Any, int]:
         raise OSError()
 
-    def QueryValueEx(__key: Any, __name: str) -> tuple[Any, int]:
+    def QueryValueEx(__key: HKEYType, __name: str) -> tuple[Any, int]:
         raise OSError()
 
     module = ModuleType("winreg")
     setattr(module, "OpenKey", OpenKey)
     setattr(module, "OpenKeyEx", OpenKeyEx)
+    setattr(module, "EnumValue", EnumValue)
     setattr(module, "QueryValueEx", QueryValueEx)
     setattr(module, "HKEY_CURRENT_USER", 1)
     setattr(module, "HKEY_LOCAL_MACHINE", 1)

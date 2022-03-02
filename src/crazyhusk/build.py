@@ -14,8 +14,11 @@ if TYPE_CHECKING:
 
 
 class Buildable(ABC):
+    """Abstract base class for objects buildable by Unreal's build tools."""
+
     @abstractmethod
     def is_buildable(self) -> bool:
+        """Get whether this object is buildable in its current configuration."""
         ...
 
     @abstractmethod
@@ -27,17 +30,21 @@ class Buildable(ABC):
         *extra_switches: str,
         **extra_parameters: str,
     ) -> Iterable[str]:
+        """Iterate strings of subprocess arguments to execute the build."""
         ...
 
     @property
     @abstractmethod
     def engine(self) -> Optional[UnrealEngine]:
+        """Get the associated UnrealEngine object for this Buildable."""
         ...
 
     def is_valid_build_target(self, target: str) -> bool:
+        """Get whether a given build target is valid for this Buildable."""
         return target in {"Game", "Editor", "Server"}
 
     def is_valid_build_platform(self, platform: str) -> bool:
+        """Get whether a given platform is valid for this Buildable."""
         return platform in {
             "Win32",
             "Win64",
@@ -49,6 +56,7 @@ class Buildable(ABC):
         }
 
     def is_valid_build_configuration(self, configuration: str) -> bool:
+        """Get whether a given build configuration is valid for this Buildable."""
         return configuration in {
             "Debug",
             "DebugGame",
@@ -58,6 +66,7 @@ class Buildable(ABC):
         }
 
     def default_local_platform(self) -> str:
+        """Get the default build platform for the local system."""
         local_system = platform.system()
         if local_system == "Windows":
             return "Win64"
@@ -70,13 +79,17 @@ class Buildable(ABC):
         )
 
     def default_build_target(self) -> str:
+        """Get the default build target for this Buildable."""
         return "Editor"
 
     def default_build_configuration(self) -> str:
+        """Get the default build configuration for this Buildable."""
         return "Development"
 
 
 class UnrealBuild(object):
+    """Object wrapper for composing and running an Unreal build subroutine."""
+
     buildable: Buildable
     __target: str
     __configuration: str
@@ -89,6 +102,7 @@ class UnrealBuild(object):
         configuration: Optional[str] = None,
         build_platform: Optional[str] = None,
     ) -> None:
+        """Initialize a new UnrealBuild."""
         self.buildable = buildable
         if target is None:
             self.target = self.buildable.default_build_target()
@@ -107,28 +121,34 @@ class UnrealBuild(object):
 
     @property
     def target(self) -> str:
+        """Get the build target for this UnrealBuild."""
         return self.__target
 
     @target.setter
     def target(self, value: str) -> None:
+        """Set the build target for this UnrealBuild."""
         if self.buildable.is_valid_build_target(value):
             self.__target = value
 
     @property
     def configuration(self) -> str:
+        """Get the build configuration for this UnrealBuild."""
         return self.__configuration
 
     @configuration.setter
     def configuration(self, value: str) -> None:
+        """Set the build configuration for this UnrealBuild."""
         if self.buildable.is_valid_build_configuration(value):
             self.__configuration = value
 
     @property
     def platform(self) -> str:
+        """Get the build platform for this UnrealBuild."""
         return self.__platform
 
     @platform.setter
     def platform(self, value: str) -> None:
+        """Set the build platform for this UnrealBuild."""
         if self.buildable.is_valid_build_platform(value):
             self.__platform = value
 
@@ -137,6 +157,7 @@ class UnrealBuild(object):
         *extra_switches: str,
         **extra_parameters: str,
     ) -> int:
+        """Execute the currently configured build subprocess for this UnrealBuild."""
         if not self.buildable.is_buildable():
             raise ValueError(f"Buildable: {self.buildable!r} cannot be built.")
 

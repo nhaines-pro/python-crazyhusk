@@ -39,7 +39,9 @@ class UnrealConfigParser(configparser.RawConfigParser):
     RE_OPTION_SPECIALCHARS = re.compile(r"^([+-.!])")
 
     def __init__(self) -> None:
+        """Initialize a new UnrealConfigParser."""
         super().__init__(strict=False)
 
     def optionxform(self, optionstr: str) -> str:
+        """Transform the string used by ConfigParsers for use with key expression of options."""
         return UnrealConfigParser.RE_OPTION_SPECIALCHARS.sub("", optionstr)

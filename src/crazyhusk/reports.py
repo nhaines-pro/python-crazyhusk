@@ -11,10 +11,12 @@ from xml.etree.ElementTree import Element
 
 
 def report_timestamp_to_iso8601_timestamp(timestamp: str) -> str:
+    """Convert Unreal JSON report formatted timestamp to ISO8601 timestamp."""
     return datetime.datetime.strptime(timestamp, "%Y.%m.%d-%H.%M.%S").isoformat()
 
 
 def report_entry_to_entry_xml(entry: Dict[str, Any]) -> Element:
+    """Convert Unreal JSON report entry into jUnit failure XML."""
     failure = Element("failure")
     failure.set("type", entry.get("event", {}).get("type", ""))
     timestamp = entry.get("timestamp")
@@ -28,6 +30,7 @@ def report_entry_to_entry_xml(entry: Dict[str, Any]) -> Element:
 
 
 def report_test_to_testcase_xml(test: Dict[str, Any]) -> Element:
+    """Convert Unreal JSON report test into jUnit testcase."""
     test_case = Element("testcase")
     test_case.set("name", test.get("testDisplayName", ""))
     test_case.set("classname", test.get("fullTestPath", ""))
@@ -38,6 +41,7 @@ def report_test_to_testcase_xml(test: Dict[str, Any]) -> Element:
 
 
 def report_object_to_testsuite_xml(report: Dict[str, Any]) -> Element:
+    """Convert Unreal JSON report into jUnit testsuite."""
     test_suite = Element("testsuite")
     test_suite.set("tests", str(len(report.get("tests", []))))
     test_suite.set("failures", str(report.get("failed", 0)))
@@ -77,6 +81,7 @@ def report_object_to_testsuite_xml(report: Dict[str, Any]) -> Element:
 
 
 def json_report_to_dict(report_file: str) -> Dict[str, Any]:
+    """Deserialize Unreal JSON report file into a dictionary."""
     if not os.path.isfile(report_file):
         raise ValueError(f"JSON report not found: {report_file}")
 
@@ -91,6 +96,7 @@ def json_report_to_dict(report_file: str) -> Dict[str, Any]:
 
 
 def write_junit_xml_report(report_file: str, test_suites: Element) -> None:
+    """Write XML test suites to a file."""
     if not os.path.splitext(report_file)[-1] == ".xml":
         raise ValueError(f"Report file is not XML: {report_file}")
 

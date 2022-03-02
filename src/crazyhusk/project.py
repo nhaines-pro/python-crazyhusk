@@ -114,6 +114,7 @@ class UnrealProject(Buildable):
     """Object wrapper representation of an Unreal Engine project."""
 
     def __init__(self, project_file: str) -> None:
+        """Initialize a new instance of UnrealProject."""
         self.project_file: str = project_file
         self.name: str = os.path.splitext(os.path.basename(project_file))[0]
 
@@ -129,6 +130,7 @@ class UnrealProject(Buildable):
 
     @property
     def code_templates(self) -> Dict[str, CodeTemplate]:
+        """Get a mapping of this UnrealProject's available C++ code templates."""
         if self.__code_templates is None:
             self.__code_templates = {}
             items = []  # type: List[Union[UnrealProject,UnrealEngine,UnrealPlugin]]
@@ -147,6 +149,7 @@ class UnrealProject(Buildable):
 
     @property
     def descriptor(self) -> Optional[ProjectDescriptor]:
+        """Get an instance of this UnrealProject's associated ProjectDescriptor."""
         if self.__descriptor is None:
             self.validate()
 
@@ -159,6 +162,7 @@ class UnrealProject(Buildable):
 
     @property
     def engine(self) -> Optional[UnrealEngine]:
+        """Get the associated UnrealEngine object for this Buildable."""
         if self.__engine is None:
             if self.descriptor is not None and self.descriptor.engine_association == "":
                 self.__engine = UnrealEngine(
@@ -175,6 +179,7 @@ class UnrealProject(Buildable):
 
     @engine.setter
     def engine(self, new_engine: Union[UnrealEngine, str]) -> None:
+        """Set the associated UnrealEngine object for this Buildable."""
         if not isinstance(new_engine, UnrealEngine):
             self.__engine = UnrealEngine.find_engine(new_engine)
         else:
@@ -202,6 +207,7 @@ class UnrealProject(Buildable):
 
     @property
     def modules(self) -> Optional[Dict[str, ModuleDescriptor]]:
+        """Get a mapping of this UnrealProject's associated ModuleDescriptors."""
         if self.__modules is None:
             if self.descriptor is not None:
                 self.__modules = {
@@ -213,6 +219,7 @@ class UnrealProject(Buildable):
 
     @property
     def plugins(self) -> Optional[Dict[str, UnrealPlugin]]:
+        """Get a mapping of the available plugins installed with this UnrealProject."""
         if self.__plugins is None:
             if self.engine is None:
                 self.__plugins = {}
@@ -241,6 +248,7 @@ class UnrealProject(Buildable):
     # crazyhusk.code.listers
     @staticmethod
     def list_project_code_templates(project: UnrealProject) -> Iterable[CodeTemplate]:
+        """Iterate over a given UnrealProject's available C++ code templates."""
         if isinstance(project, UnrealProject):
             for template_filename in glob.iglob(
                 os.path.join(project.content_dir, "Editor", "Templates", "*.template")
@@ -307,6 +315,7 @@ class UnrealProject(Buildable):
         *extra_switches: str,
         **extra_parameters: str,
     ) -> Iterable[str]:
+        """Iterate strings of subprocess arguments to execute the build."""
         if self.engine is None:
             raise UnrealProjectError(
                 f"Could not resolve an associated UnrealEngine for project: {self!r}"
@@ -330,6 +339,7 @@ class UnrealProject(Buildable):
             yield arg
 
     def is_buildable(self) -> bool:
+        """Get whether this object is buildable in its current configuration."""
         return self.engine is not None  # TODO: check for .Target.cs files
 
     def list_tests(

@@ -11,9 +11,12 @@ class CodeTemplateError(Exception):
 
 
 class CodeTemplate(object):
+    """Object wrapper for working with Unreal's code templating system for C++."""
+
     TOKEN_RE = re.compile(r"\%([A-Z_]+)\%", flags=re.MULTILINE)
 
     def __init__(self, name: str, template_string: str = "") -> None:
+        """Initialize a new CodeTemplate."""
         self.name: str = name
         self.template_string: str = template_string
 
@@ -23,6 +26,7 @@ class CodeTemplate(object):
 
     @property
     def tokens(self) -> Set[str]:
+        """Get the set of string replacement tokens expressed by this CodeTemplate."""
         return {
             token
             for match in CodeTemplate.TOKEN_RE.finditer(self.template_string)
@@ -30,6 +34,7 @@ class CodeTemplate(object):
         }
 
     def make_instance(self, **tokens: str) -> str:
+        """Create a templated string using the supplied tokens with this CodeTemplate."""
         missing = self.tokens - set(tokens.keys())
         if len(missing):
             raise CodeTemplateError(

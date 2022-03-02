@@ -245,6 +245,7 @@ class UnrealPlugin(Buildable):
     """Object wrapper representation of an Unreal Engine plugin."""
 
     def __init__(self, plugin_file: str) -> None:
+        """Initialize a new instance of UnrealPlugin."""
         if plugin_file is None:
             raise TypeError("UnrealPlugin plugin_file must not be None.")
 
@@ -261,6 +262,7 @@ class UnrealPlugin(Buildable):
 
     @property
     def code_templates(self) -> Dict[str, CodeTemplate]:
+        """Get a mapping of this UnrealPlugin's available C++ code templates."""
         if self.__code_templates is None:
             self.__code_templates = {
                 template.name: template
@@ -271,6 +273,7 @@ class UnrealPlugin(Buildable):
 
     @property
     def descriptor(self) -> PluginDescriptor:
+        """Get an instance of this UnrealPlugin's associated PluginDescriptor."""
         if self.__descriptor is None:
             self.validate()
 
@@ -283,10 +286,12 @@ class UnrealPlugin(Buildable):
 
     @property
     def engine(self) -> Optional[UnrealEngine]:
+        """Get the associated UnrealEngine object for this Buildable."""
         return None
 
     @property
     def modules(self) -> Dict[str, ModuleDescriptor]:
+        """Get a mapping of this UnrealPlugin's associated ModuleDescriptors."""
         if self.__modules is None:
             self.__modules = {
                 module.name: module
@@ -297,6 +302,7 @@ class UnrealPlugin(Buildable):
 
     @property
     def name(self) -> str:
+        """Get the name of this UnrealPlugin."""
         if self.__name is None:
             self.__name = os.path.splitext(os.path.basename(self.plugin_file))[0]
         return self.__name
@@ -308,6 +314,7 @@ class UnrealPlugin(Buildable):
 
     @property
     def plugin_refs(self) -> Dict[str, PluginReferenceDescriptor]:
+        """Get a mapping of PluginReferenceDescriptors for this UnrealPlugin."""
         if self.__plugin_refs is None:
             self.__plugin_refs = {
                 plugin.name: plugin
@@ -330,6 +337,7 @@ class UnrealPlugin(Buildable):
     # crazyhusk.code.listers
     @staticmethod
     def list_plugin_code_templates(plugin: UnrealPlugin) -> Iterable[CodeTemplate]:
+        """Iterate over a given UnrealPlugin's available C++ code templates."""
         if isinstance(plugin, UnrealPlugin):
             for template_filename in glob.iglob(
                 os.path.join(plugin.content_dir, "Editor", "Templates", "*.template")
@@ -374,9 +382,11 @@ class UnrealPlugin(Buildable):
         *extra_switches: str,
         **extra_parameters: str,
     ) -> Iterable[str]:
+        """Iterate strings of subprocess arguments to execute the build."""
         ...
 
     def is_buildable(self) -> bool:
+        """Get whether this object is buildable in its current configuration."""
         return False
 
     def unreal_path_to_file_path(

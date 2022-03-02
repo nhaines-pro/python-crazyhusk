@@ -1,4 +1,5 @@
 """Sphinx configuration."""
+# Standard Library
 from importlib import metadata as md
 
 project = "CrazyHusk"

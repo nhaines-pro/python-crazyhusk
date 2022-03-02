@@ -94,7 +94,7 @@ class UnrealVersion(object):
 
     @staticmethod
     def to_object(dct: Dict[str, Any]) -> UnrealVersion:
-        """Convert dictionary form to UnrealVersion object instance."""
+        """Convert mapping form to UnrealVersion object instance."""
         version = UnrealVersion()
         version.major = dct.get("MajorVersion", 4)
         version.minor = dct.get("MinorVersion", 0)
@@ -145,6 +145,7 @@ class UnrealEngine(Buildable):
         )
 
     def __lt__(self, other: object) -> bool:
+        """Get whether this UnrealEngine is less than another instance of UnrealEngine."""
         if not isinstance(other, UnrealEngine):
             return NotImplemented
         if self.version is None or other.version is None:
@@ -153,6 +154,7 @@ class UnrealEngine(Buildable):
 
     def __enter__(self) -> UnrealEngine:
         """Context wrapper entry point.
+
         Resets the context for running multiple processes sequentially.
         """
         self.__in_context = True
@@ -163,6 +165,7 @@ class UnrealEngine(Buildable):
         self, exc_type: Optional[Any], exc_val: Optional[Any], exc_tb: Optional[Any]
     ) -> None:
         """Context wrapper exit point.
+
         Ensures any running subprocesses are terminated.
         """
         if isinstance(self.__process, subprocess.Popen):
@@ -196,6 +199,7 @@ class UnrealEngine(Buildable):
 
     @property
     def build_targets(self) -> Dict[str, str]:
+        """Get a mapping of this UnrealEngine's available build targets."""
         if self.__build_targets is None:
             self.__build_targets = {}
             for target_file in glob.iglob(
@@ -216,6 +220,7 @@ class UnrealEngine(Buildable):
 
     @property
     def code_templates(self) -> Dict[str, CodeTemplate]:
+        """Get a mapping of this UnrealEngine's available C++ code templates."""
         if self.__code_templates is None:
             self.__code_templates = {}
             items = [self]  # type: List[Union[UnrealEngine,UnrealPlugin]]
@@ -240,6 +245,7 @@ class UnrealEngine(Buildable):
 
     @property
     def engine(self) -> Optional[UnrealEngine]:
+        """Get the associated UnrealEngine object for this Buildable."""
         return self
 
     @property
@@ -249,10 +255,12 @@ class UnrealEngine(Buildable):
 
     @property
     def source_dir(self) -> str:
+        """Path to this Engine's Source directory."""
         return os.path.join(self.base_dir, "Engine", "Source")
 
     @property
     def plugins(self) -> Optional[Dict[str, UnrealPlugin]]:
+        """Get a mapping of the available plugins installed with this Engine."""
         # CrazyHusk
         from crazyhusk.plugin import UnrealPlugin
 
@@ -314,6 +322,7 @@ class UnrealEngine(Buildable):
     # crazyhusk.code.listers
     @staticmethod
     def list_engine_code_templates(engine: UnrealEngine) -> Iterable[CodeTemplate]:
+        """Iterate over a given UnrealEngine's available C++ code templates."""
         if isinstance(engine, UnrealEngine):
             for template_filename in glob.iglob(
                 os.path.join(engine.content_dir, "Editor", "Templates", "*.template")
@@ -393,6 +402,7 @@ class UnrealEngine(Buildable):
                 )
 
     def default_build_target(self) -> str:
+        """Get the default build target for this Buildable."""
         return "UE4Editor"
 
     def executable_path(self, executable_name: str) -> Optional[str]:
@@ -411,6 +421,7 @@ class UnrealEngine(Buildable):
         *extra_switches: str,
         **extra_parameters: str,
     ) -> Iterable[str]:
+        """Get the default build configuration for this Buildable."""
         ubt_path = self.executable_path("UnrealBuildTool")
         if ubt_path is None:
             raise UnrealEngineError(
@@ -429,6 +440,7 @@ class UnrealEngine(Buildable):
             yield arg
 
     def is_buildable(self) -> bool:
+        """Get whether this object is buildable in its current configuration."""
         return self.is_source_build()
 
     def is_installed_build(self) -> bool:
@@ -440,6 +452,7 @@ class UnrealEngine(Buildable):
         return os.path.isfile(os.path.join(self.build_dir, "SourceDistribution.txt"))
 
     def is_valid_build_target(self, target: str) -> bool:
+        """Get whether a given build target is valid for this Buildable."""
         return target in self.build_targets
 
     def unreal_path_to_file_path(

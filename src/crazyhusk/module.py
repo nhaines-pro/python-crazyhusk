@@ -86,6 +86,7 @@ class ModuleDescriptor(object):
 
     @staticmethod
     def to_object(dct: Dict[str, Any]) -> Union[ModuleDescriptor, Dict[str, Any]]:
+        """Convert a dictionary to an instance of ModuleDescriptor."""
         descriptor = ModuleDescriptor()
         descriptor.name = dct.get("Name")
         descriptor.host_type = dct.get("Type", "Runtime")
@@ -108,6 +109,7 @@ class ModuleDescriptor(object):
         return dct
 
     def to_dict(self) -> Dict[str, Any]:
+        """Format this ModuleDescriptor as a dictionary for JSON."""
         return {
             "Name": self.name,
             "Type": self.host_type,
@@ -123,6 +125,7 @@ class ModuleDescriptor(object):
         }
 
     def is_valid(self) -> bool:
+        """Get wehther this ModuleDescriptor is properly constructed."""
         return (
             self.name is not None
             and self.name != ""

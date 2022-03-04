@@ -135,7 +135,7 @@ def test_unreal_version_eq(
 
 
 def test_unreal_version_eq_null(version_empty: engine.UnrealVersion) -> None:
-    assert not version_empty == None
+    assert version_empty is not None
 
 
 @pytest.mark.parametrize(

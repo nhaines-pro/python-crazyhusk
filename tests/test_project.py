@@ -64,8 +64,9 @@ def test_project_descriptor_to_object_module_dict(
     "project_descriptor_fixture,expected_type",
     [
         ("null_association_project_descriptor", dict),
-        ("empty_association_project_descriptor", project.ProjectDescriptor),
-        ("basic_project_descriptor", project.ProjectDescriptor),
+        ("empty_association_project_descriptor", dict),
+        ("basic_project_descriptor", dict),
+        ("basic_project_descriptor_withmodule", module.ModuleDescriptor),
     ],
 )
 def test_project_descriptor_modules(
@@ -76,6 +77,26 @@ def test_project_descriptor_modules(
         assert isinstance(_module, expected_type)
 
 
+@pytest.mark.parametrize(
+    "project_descriptor_fixture,expected_type",
+    [
+        ("null_association_project_descriptor", dict),
+        ("empty_association_project_descriptor", dict),
+        ("basic_project_descriptor", dict),
+        (
+            "basic_project_descriptor_withpluginreference",
+            plugin.PluginReferenceDescriptor,
+        ),
+    ],
+)
+def test_project_descriptor_plugins(
+    project_descriptor_fixture: str, expected_type: Type[Any], request: Any
+) -> None:
+    project_descriptor = request.getfixturevalue(project_descriptor_fixture)
+    for _plugin in project_descriptor.plugins:
+        assert isinstance(_plugin, expected_type)
+
+
 def test_project_descriptor_add_module(
     basic_project_descriptor: project.ProjectDescriptor,
     default_valid_module_descriptor: module.ModuleDescriptor,
@@ -83,6 +104,17 @@ def test_project_descriptor_add_module(
     with pytest.raises(NotImplementedError):
         assert basic_project_descriptor.add_module({}) is None
     assert basic_project_descriptor.add_module(default_valid_module_descriptor) is None
+
+
+def test_project_descriptor_add_plugin(
+    basic_project_descriptor: project.ProjectDescriptor,
+    basic_plugin_reference_descriptor: plugin.PluginReferenceDescriptor,
+) -> None:
+    with pytest.raises(NotImplementedError):
+        assert basic_project_descriptor.add_plugin({}) is None
+    assert (
+        basic_project_descriptor.add_plugin(basic_plugin_reference_descriptor) is None
+    )
 
 
 # UnrealProject tests

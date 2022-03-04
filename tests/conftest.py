@@ -410,6 +410,15 @@ def basic_project_descriptor_withmodule(
 
 
 @pytest.fixture(scope="function")
+def basic_project_descriptor_withpluginreference(
+    basic_project_descriptor: project.ProjectDescriptor,
+    basic_plugin_reference_descriptor: plugin.PluginReferenceDescriptor,
+) -> project.ProjectDescriptor:
+    basic_project_descriptor.add_plugin(basic_plugin_reference_descriptor)
+    yield basic_project_descriptor
+
+
+@pytest.fixture(scope="function")
 def basic_project_descriptor_withmodule_dict(
     basic_project_descriptor: project.ProjectDescriptor,
     default_valid_module_descriptor: module.ModuleDescriptor,

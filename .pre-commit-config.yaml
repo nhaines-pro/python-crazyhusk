@@ -48,6 +48,7 @@ repos:
         entry: pydocstyle
         language: system
         types: [python]
+        exclude: "^tests.*$"
       - id: pycodestyle
         name: pycodestyle
         entry: pycodestyle
@@ -59,6 +60,7 @@ repos:
         entry: mypy
         language: system
         types_or: [cython, pyi, python]
+        exclude: "^tests.*$"
       - id: trailing-whitespace
         name: Trim Trailing Whitespace
         entry: trailing-whitespace-fixer

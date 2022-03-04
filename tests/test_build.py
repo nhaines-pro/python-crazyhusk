@@ -71,3 +71,27 @@ def test_buildable(monkeypatch: Any) -> None:
     monkeypatch.setattr("platform.system", lambda: "Invalid")
     with pytest.raises(NotImplementedError):
         assert mb.default_local_platform() is None
+
+
+def test_unreal_build() -> None:
+    mb = MockBuildable()
+    b = build.UnrealBuild(mb)
+    assert b is not None
+    assert b.target is not None
+    assert b.configuration is not None
+    assert b.platform is not None
+
+    b = build.UnrealBuild(mb, target="Game")
+    assert b.target is not None
+    b.target = None
+    assert b.target is not None
+
+    b = build.UnrealBuild(mb, configuration="Debug")
+    assert b.configuration is not None
+    b.configuration = None
+    assert b.configuration is not None
+
+    b = build.UnrealBuild(mb, build_platform="Linux")
+    assert b.platform is not None
+    b.platform = None
+    assert b.platform is not None

@@ -32,30 +32,41 @@ def set_subcommand_arguments(
             f"Command provided must be a callable function. Got:{command!r}"
         )
 
-    fullargs = inspect.getfullargspec(command)
-    if fullargs.defaults is not None:
-        firstdefault = len(fullargs.args) - len(fullargs.defaults)
+    for param in inspect.signature(command).parameters.values():
+        vargs = []
+        kwargs = {}
 
-    for i, arg in enumerate(fullargs.args):
-        if fullargs.defaults and i >= firstdefault:
-            default = fullargs.defaults[i - firstdefault]
-            if default is None:
-                parser.add_argument(dest=arg)
-            elif type(default) is tuple or type(default) is list:
-                parser.add_argument("--" + arg, default=default, nargs="+")
-            elif type(default) is bool and default:
-                parser.add_argument(
-                    "--disable_" + arg, dest=arg, default=default, action="store_false"
-                )
-            elif type(default) is bool and not default:
-                parser.add_argument(
-                    "--enable_" + arg, dest=arg, default=default, action="store_true"
-                )
-            else:
-                parser.add_argument("--" + arg, default=default, type=type(default))
+        if param.default is not inspect.Parameter.empty:
+            kwargs["default"] = param.default
+
+        name = param.name
+        if param.kind == inspect.Parameter.POSITIONAL_ONLY:
+            pass
+        elif param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
+            name = f"--{param.name}"
+            kwargs["dest"] = param.name
+        elif param.kind == inspect.Parameter.VAR_POSITIONAL:
+            kwargs["nargs"] = argparse.ZERO_OR_MORE
+        elif param.kind == inspect.Parameter.KEYWORD_ONLY:
+            name = f"--{param.name}"
+            kwargs["dest"] = param.name
+        elif param.kind == inspect.Parameter.VAR_KEYWORD:
+            pass
         else:
-            parser.add_argument(dest=arg)
+            raise TypeError(f"Invalid function signature parameter type: {param.kind}")
 
+        if type(param.default) is bool:
+            if param.default:
+                name = f"--disable-{param.name}"
+                kwargs["dest"] = param.name
+                kwargs["action"] = "store_false"
+            else:
+                name = f"--enable-{param.name}"
+                kwargs["dest"] = param.name
+                kwargs["action"] = "store_true"
+
+        vargs.append(name)
+        parser.add_argument(*vargs, **kwargs)
     return parser
 
 
@@ -67,14 +78,15 @@ def parse_cli_args(args: List[str]) -> argparse.Namespace:
         raise CommandError("Must provide at least one argument.")
 
     parser = argparse.ArgumentParser()
-    commands_parser = parser.add_subparsers(
-        title="subcommands", description="valid subcommands", help="subcommand help"
-    )
+    commands_parser = parser.add_subparsers(title="subcommands")
 
     for entry_point in entry_points().get("crazyhusk.commands", []):
         command = entry_point.load()
         if inspect.isfunction(command):
-            cmd_parser = commands_parser.add_parser(entry_point.name)
+            docstring = inspect.getdoc(command)
+            if docstring is not None:
+                docstring = docstring.split("\n")[0]
+            cmd_parser = commands_parser.add_parser(entry_point.name, help=docstring)
             cmd_parser.set_defaults(command=command)
             set_subcommand_arguments(cmd_parser, command)
 
@@ -87,6 +99,21 @@ def run(args: List[str] = sys.argv[1:]) -> None:
 
     command_args = parse_cli_args(args)
     if "command" in command_args:
-        command_args.command(
-            **{k: v for k, v in command_args.__dict__.items() if k != "command"}
-        )
+        vargs = []
+        kwargs = {}
+        for param in inspect.signature(command_args.command).parameters.values():
+            if param.kind == inspect.Parameter.POSITIONAL_ONLY:
+                vargs.append(getattr(command_args, param.name))
+            elif param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
+                vargs.append(getattr(command_args, param.name))
+            elif param.kind == inspect.Parameter.VAR_POSITIONAL:
+                vargs.extend(getattr(command_args, param.name))
+            elif param.kind == inspect.Parameter.KEYWORD_ONLY:
+                kwargs[param.name] = getattr(command_args, param.name)
+            elif param.kind == inspect.Parameter.VAR_KEYWORD:
+                pass
+            else:
+                raise TypeError(
+                    f"Invalid function signature parameter type: {param.kind}"
+                )
+        command_args.command(*vargs, **kwargs)

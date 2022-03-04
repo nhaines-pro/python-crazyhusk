@@ -19,7 +19,7 @@ class Buildable(ABC):
     @abstractmethod
     def is_buildable(self) -> bool:
         """Get whether this object is buildable in its current configuration."""
-        ...
+        raise NotImplementedError()
 
     @abstractmethod
     def get_build_command(
@@ -31,13 +31,13 @@ class Buildable(ABC):
         **extra_parameters: str,
     ) -> Iterable[str]:
         """Iterate strings of subprocess arguments to execute the build."""
-        ...
+        raise NotImplementedError()
 
     @property
     @abstractmethod
     def engine(self) -> Optional[UnrealEngine]:
         """Get the associated UnrealEngine object for this Buildable."""
-        ...
+        raise NotImplementedError()
 
     def is_valid_build_target(self, target: str) -> bool:
         """Get whether a given build target is valid for this Buildable."""

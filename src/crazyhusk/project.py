@@ -109,6 +109,11 @@ class ProjectDescriptor(object):
             raise NotImplementedError()
         self.__modules.append(module.to_dict())
 
+    def add_plugin(self, plugin: PluginReferenceDescriptor) -> None:
+        if not isinstance(plugin, PluginReferenceDescriptor):
+            raise NotImplementedError()
+        self.__plugins.append(plugin.to_dict())
+
 
 class UnrealProject(Buildable):
     """Object wrapper representation of an Unreal Engine project."""

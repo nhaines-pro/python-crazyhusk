@@ -112,7 +112,7 @@ def write_junit_xml_report(report_file: str, test_suites: Element) -> None:
         )
 
 
-def json_reports_to_junit_xml(junit_file: str, /, *json_reports: str) -> None:
+def json_reports_to_junit_xml(junit_file: str, *json_reports: str) -> None:
     """Convert a JSON report from Unreal automation to jUnit XML format."""
     test_suites = Element("testsuites")
     test_suites.set("name", "Unreal Automation Tests")

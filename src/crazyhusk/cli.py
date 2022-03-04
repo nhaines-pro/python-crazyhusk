@@ -43,13 +43,15 @@ def set_subcommand_arguments(
         if param.kind == inspect.Parameter.POSITIONAL_ONLY:
             pass
         elif param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
-            name = f"--{param.name}"
-            kwargs["dest"] = param.name
+            if param.default is not inspect.Parameter.empty:
+                name = f"--{param.name}"
+                kwargs["dest"] = param.name
         elif param.kind == inspect.Parameter.VAR_POSITIONAL:
             kwargs["nargs"] = argparse.ZERO_OR_MORE
         elif param.kind == inspect.Parameter.KEYWORD_ONLY:
-            name = f"--{param.name}"
-            kwargs["dest"] = param.name
+            if param.default is not inspect.Parameter.empty:
+                name = f"--{param.name}"
+                kwargs["dest"] = param.name
         elif param.kind == inspect.Parameter.VAR_KEYWORD:
             pass
         else:

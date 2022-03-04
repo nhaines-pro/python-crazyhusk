@@ -159,7 +159,7 @@ def test_write_junit_xml_report(
 @pytest.mark.parametrize(
     "report_file_fixture,json_file_fixtures,raises",
     [
-        ("null_report_file", ["empty_dict_json_report_file"], None),
+        ("null_report_file", ["empty_dict_json_report_file"], TypeError),
         ("empty_filename_report_file", ["empty_dict_json_report_file"], ValueError),
         ("xml_filename_report_file", ["empty_dict_json_report_file"], None),
     ],
@@ -176,6 +176,6 @@ def test_json_reports_to_junit_xml(
     ]
     if raises is not None:
         with pytest.raises(raises):
-            assert reports.json_reports_to_junit_xml(report_file, json_reports) is None
+            assert reports.json_reports_to_junit_xml(report_file, *json_reports) is None
     else:
-        assert reports.json_reports_to_junit_xml(report_file, json_reports) is None
+        assert reports.json_reports_to_junit_xml(report_file, *json_reports) is None

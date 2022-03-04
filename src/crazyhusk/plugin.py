@@ -383,7 +383,7 @@ class UnrealPlugin(Buildable):
         **extra_parameters: str,
     ) -> Iterable[str]:
         """Iterate strings of subprocess arguments to execute the build."""
-        ...
+        raise StopIteration
 
     def is_buildable(self) -> bool:
         """Get whether this object is buildable in its current configuration."""

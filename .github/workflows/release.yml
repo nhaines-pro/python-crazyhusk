@@ -26,7 +26,7 @@ jobs:
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
       - name: Publish the release notes
-        uses: release-drafter/release-drafter@v5.18.1
+        uses: release-drafter/release-drafter@v5.19.0
         with:
           publish: "${{ steps.check-version.outputs.tag != '' }}"
           tag: "${{ steps.check-version.outputs.tag }}"

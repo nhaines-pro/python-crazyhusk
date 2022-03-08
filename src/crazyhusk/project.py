@@ -363,7 +363,7 @@ class UnrealProject(Buildable):
         if editor:
             switches.add("editortest")
         else:
-            switches.add("-game")
+            switches.add("game")
 
         switches.update(*extra_switches)
 
@@ -389,6 +389,7 @@ class UnrealProject(Buildable):
         tests: List[str],
         report_path: Optional[str] = None,
         editor: bool = True,
+        rhi: str = "nullrhi",
         *extra_switches: str,
         **extra_parameters: str,
     ) -> int:
@@ -397,10 +398,10 @@ class UnrealProject(Buildable):
             report_path = self.reports_dir
 
         switches = {
+            rhi,
             "buildmachine",
             "unattended",
             "nopause",
-            "nullrhi",
             "stdout",
             "nosplash",
         }
@@ -408,7 +409,7 @@ class UnrealProject(Buildable):
         if editor:
             switches.add("editortest")
         else:
-            switches.add("-game")
+            switches.add("game")
 
         switches.update(*extra_switches)
 

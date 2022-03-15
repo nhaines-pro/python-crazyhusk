@@ -6,7 +6,7 @@ from __future__ import annotations
 # Standard Library
 import platform
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Dict, Iterable, Optional
+from typing import TYPE_CHECKING, Iterable, Optional
 
 if TYPE_CHECKING:
     # CrazyHusk
@@ -65,6 +65,13 @@ class Buildable(ABC):
             "Test",
         }
 
+    def is_valid_static_analyzer(self, static_analyzer: str) -> bool:
+        """Get whether a given c++ static analyzer is valid for this Buildable."""
+        return platform.system() == "Windows" and static_analyzer in {
+            "VisualCpp",
+            "PVSStudio",
+        }
+
     def default_local_platform(self) -> str:
         """Get the default build platform for the local system."""
         local_system = platform.system()
@@ -94,6 +101,7 @@ class UnrealBuild(object):
     __target: str
     __configuration: str
     __platform: str
+    __static_analyzer: Optional[str]
 
     def __init__(
         self,
@@ -101,6 +109,7 @@ class UnrealBuild(object):
         target: Optional[str] = None,
         configuration: Optional[str] = None,
         build_platform: Optional[str] = None,
+        static_analyzer: Optional[str] = None,
     ) -> None:
         """Initialize a new UnrealBuild."""
         self.buildable = buildable
@@ -118,6 +127,8 @@ class UnrealBuild(object):
             self.platform = self.buildable.default_local_platform()
         else:
             self.platform = build_platform
+
+        self.static_analyzer = static_analyzer
 
     @property
     def target(self) -> str:
@@ -152,6 +163,19 @@ class UnrealBuild(object):
         if self.buildable.is_valid_build_platform(value):
             self.__platform = value
 
+    @property
+    def static_analyzer(self) -> Optional[str]:
+        """Get the c++ static analyzer platform for this UnrealBuild."""
+        return self.__static_analyzer
+
+    @static_analyzer.setter
+    def static_analyzer(self, value: Optional[str]) -> None:
+        """Set the c++ static analyzer platform for this UnrealBuild."""
+        if value is None:
+            self.__static_analyzer = None
+        elif self.buildable.is_valid_static_analyzer(value):
+            self.__static_analyzer = value
+
     def run(
         self,
         *extra_switches: str,
@@ -165,6 +189,9 @@ class UnrealBuild(object):
             raise ValueError(
                 f"Buildable: {self.buildable!r} could not resolve a valid UnrealEngine."
             )
+
+        if self.static_analyzer is not None:
+            extra_parameters["StaticAnalyzer"] = self.static_analyzer
 
         with self.buildable.engine:
             return self.buildable.engine.run(

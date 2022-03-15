@@ -333,8 +333,7 @@ class UnrealProject(Buildable):
         yield ubt_path
         yield configuration or ""
         yield platform or ""
-        switches = {"Progress", "WaitMutex", "NoHotReloadFromIDE"}
-        switches.update(*extra_switches)
+        switches = {"Progress", "WaitMutex", "NoHotReloadFromIDE"} | set(extra_switches)
         parameters: Dict[str, str] = {
             "Project": self.project_file,
             "TargetType": target or "",
@@ -358,14 +357,12 @@ class UnrealProject(Buildable):
             "nullrhi",
             "stdout",
             "nosplash",
-        }
+        } | set(extra_switches)
 
         if editor:
             switches.add("editortest")
         else:
             switches.add("game")
-
-        switches.update(*extra_switches)
 
         params = {
             "ExecCmds": "Automation List; quit",
@@ -404,14 +401,12 @@ class UnrealProject(Buildable):
             "nopause",
             "stdout",
             "nosplash",
-        }
+        } | set(extra_switches)
 
         if editor:
             switches.add("editortest")
         else:
             switches.add("game")
-
-        switches.update(*extra_switches)
 
         params = {
             "ExecCmds": "Automation RunTests " + "+".join(tests) + "; quit",

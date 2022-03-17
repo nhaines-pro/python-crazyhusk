@@ -46,21 +46,29 @@ def valid_default_params(*switches: str, **params: str) -> None:
         Shot = params.get("Shot")
         if Shot is not None and not isinstance(Shot, str):
             raise UnrealRenderError(f"Shot must be stringlike, got: {Shot!r}")
+
         MovieFormat = params.get("MovieFormat")
-        if MovieFormat is not None and MovieFormat.lower() not in {
-            "jpg",
-            "bmp",
-            "png",
-            "video",
-            "customrenderpasses",
-        }:
-            raise UnrealRenderError(f"Invalid MovieFormat: {MovieFormat}")
+        if MovieFormat is not None:
+            if not isinstance(MovieFormat, str):
+                raise UnrealRenderError(
+                    f"MovieFormat must be stringlike, got: {MovieFormat!r}"
+                )
+            if MovieFormat.lower() not in {
+                "jpg",
+                "bmp",
+                "png",
+                "video",
+                "customrenderpasses",
+            }:
+                raise UnrealRenderError(f"Invalid MovieFormat: {MovieFormat}")
+
         MovieName = params.get("MovieName")
         if MovieName is not None:
             if not isinstance(MovieName, str):
                 raise UnrealRenderError(
                     f"MovieName must be stringlike, got: {MovieName!r}"
                 )
+
         CustomRenderPasses = params.get("CustomRenderPasses")
         if CustomRenderPasses is not None:
             if MovieFormat != "CustomRenderPasses":

@@ -381,6 +381,52 @@ class UnrealProject(Buildable):
                     )
         return -1
 
+    def render(
+        self,
+        map_path: str,
+        LevelSequence: str,
+        vsync: bool = False,
+        *extra_switches: str,
+        **extra_parameters: str,
+    ) -> int:
+        """Run this project in movie scene capture mode."""
+        switches = {
+            "game",
+            "noloadingscreen",
+            "unattended",
+            "nopause",
+            "noscreenmessages",
+            "stdout",
+            "nosplash",
+        } | set(extra_switches)
+
+        if vsync:
+            switches.add("VSync")
+        else:
+            switches.add("NoVSync")
+
+        params = {
+            "LevelSequence": LevelSequence,
+            "MovieCinematicMode": "yes",
+            "MovieSceneCaptureType": "/Script/MovieSceneCapture.AutomatedLevelSequenceCapture",
+        }
+        params.update(extra_parameters)
+
+        for entry_point in entry_points().get("crazyhusk.render.validators", []):
+            entry_point.load()(*switches, **params)
+
+        if self.engine is not None:
+            editor_cmd_path = self.engine.executable_path("UE4Editor-Cmd")
+            if editor_cmd_path is not None:
+                with self.engine:
+                    return self.engine.run(
+                        editor_cmd_path,
+                        f'"{self.project_file}"',
+                        map_path,
+                        *UnrealEngine.format_commandline_options(*switches, **params),
+                    )
+        return -1
+
     def run_tests(
         self,
         tests: List[str],

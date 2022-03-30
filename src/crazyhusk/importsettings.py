@@ -111,7 +111,7 @@ class CSVImportSettings(ImportSettings):
                 raise UnrealImportError(
                     "ImportRowStruct must not be empty for DataTable import."
                 )
-            elif not self.ImportRowStruct.startswith("/"):
+            if not self.ImportRowStruct.startswith("/"):
                 raise UnrealImportError(
                     f"Import Row Struct must be a Unral-style path: {self.ImportRowStruct}"
                 )

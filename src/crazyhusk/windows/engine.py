@@ -101,29 +101,29 @@ def resolve_executable_path_windows(
         return os.path.realpath(
             os.path.join(engine.engine_dir, "Binaries", "DotNet", "AutomationTool.exe")
         )
-    elif executable_name == "swarmagent":
+    if executable_name == "swarmagent":
         return os.path.realpath(
             os.path.join(engine.engine_dir, "Binaries", "DotNET", "SwarmAgent.exe")
         )
-    elif executable_name == "swarmcoordinator":
+    if executable_name == "swarmcoordinator":
         return os.path.realpath(
             os.path.join(
                 engine.engine_dir, "Binaries", "DotNET", "SwarmCoordinator.exe"
             )
         )
-    elif executable_name == "unrealbuildtool":
+    if executable_name == "unrealbuildtool":
         return os.path.realpath(
             os.path.join(engine.engine_dir, "Binaries", "DotNET", "UnrealBuildTool.exe")
         )
-    elif executable_name == "ue4editor":
+    if executable_name == "ue4editor":
         return os.path.realpath(
             os.path.join(engine.engine_dir, "Binaries", "Win64", "UE4Editor.exe")
         )
-    elif executable_name == "ue4editor-cmd":
+    if executable_name == "ue4editor-cmd":
         return os.path.realpath(
             os.path.join(engine.engine_dir, "Binaries", "Win64", "UE4Editor-Cmd.exe")
         )
-    elif executable_name == "unrealpak":
+    if executable_name == "unrealpak":
         return os.path.realpath(
             os.path.join(engine.engine_dir, "Binaries", "Win64", "UnrealPak.exe")
         )

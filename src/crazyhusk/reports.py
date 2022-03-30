@@ -4,10 +4,10 @@
 import datetime
 import json
 import os
-from typing import Any, Dict, List, Optional
-from xml.dom import minidom
-from xml.etree import ElementTree
-from xml.etree.ElementTree import Element
+from typing import Any, Dict
+from xml.dom import minidom  # nosec
+from xml.etree import ElementTree  # nosec
+from xml.etree.ElementTree import Element  # nosec
 
 
 def report_timestamp_to_iso8601_timestamp(timestamp: str) -> str:
@@ -106,7 +106,9 @@ def write_junit_xml_report(report_file: str, test_suites: Element) -> None:
 
     with open(report_file, "w", encoding="utf-8") as xml_report:
         xml_report.write(
-            minidom.parseString(ElementTree.tostring(test_suites, "utf-8")).toprettyxml(
+            minidom.parseString(
+                ElementTree.tostring(test_suites, "utf-8")
+            ).toprettyxml(  # nosec
                 indent=" " * 4
             )
         )

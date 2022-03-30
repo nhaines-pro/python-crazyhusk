@@ -71,3 +71,8 @@ repos:
     rev: v2.5.1
     hooks:
       - id: prettier
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.4
+    hooks:
+      - id: bandit
+        exclude: "^tests.*$"

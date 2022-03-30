@@ -16,7 +16,6 @@ from crazyhusk.__main__ import main
         ([], (cli.CommandError, SystemExit)),
         (["test-command"], (cli.CommandError, SystemExit)),
         ([""], (cli.CommandError, SystemExit)),
-        # TODO: monkeypatch pkg_resources behavior
     ],
 )
 def test_main(

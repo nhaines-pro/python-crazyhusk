@@ -76,7 +76,7 @@ def parse_cli_args(args: List[str]) -> argparse.Namespace:
     """Parse crazyhusk CLI arguments."""
     if args is None:
         raise CommandError("None is not parsable arguments.")
-    elif len(args) == 0:
+    if len(args) == 0:
         raise CommandError("Must provide at least one argument.")
 
     parser = argparse.ArgumentParser()

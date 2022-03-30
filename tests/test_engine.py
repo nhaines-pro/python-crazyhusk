@@ -459,7 +459,6 @@ def test_unreal_engine_plugins(
     "association,expected",
     [
         ("randomstring", type(None)),
-        # TODO: monkeypatch pkg_resources behavior
     ],
 )
 def test_unreal_engine_find_engine(association: str, expected: Type[Any]) -> None:
@@ -468,9 +467,6 @@ def test_unreal_engine_find_engine(association: str, expected: Type[Any]) -> Non
 
 def test_unreal_engine_list_all_engines() -> None:
     assert isinstance(engine.UnrealEngine.list_all_engines(), types.GeneratorType)
-
-    # TODO: monkeypatch pkg_resources behavior
-    # assert list(engine.UnrealEngine.list_all_engines())
 
 
 @pytest.mark.parametrize(

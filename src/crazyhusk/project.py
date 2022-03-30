@@ -349,7 +349,7 @@ class UnrealProject(Buildable):
 
     def is_buildable(self) -> bool:
         """Get whether this object is buildable in its current configuration."""
-        return self.engine is not None  # TODO: check for .Target.cs files
+        return self.engine is not None
 
     def list_tests(
         self, editor: bool = True, *extra_switches: str, **extra_parameters: str

@@ -101,8 +101,7 @@ def test_filter_engine_run_filter(
             "32",
             None,
             "'assert': identifier not found",
-        )
-        # TODO: find  appropriate warning message examples, including ones with column numbers
+        ),
     ],
 )
 def test_filter_ubt_warnings(

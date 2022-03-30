@@ -77,9 +77,9 @@ class Buildable(ABC):
         local_system = platform.system()
         if local_system == "Windows":
             return "Win64"
-        elif local_system == "Linux":
+        if local_system == "Linux":
             return "Linux"
-        elif local_system == "Darwin":
+        if local_system == "Darwin":
             return "Mac"
         raise NotImplementedError(
             f"Default build platform for {local_system} not defined."

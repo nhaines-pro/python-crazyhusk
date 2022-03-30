@@ -8,7 +8,7 @@ import glob
 import json
 import logging
 import os
-import subprocess
+import subprocess  # nosec
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Set, Tuple, Union
 
 try:
@@ -126,7 +126,7 @@ class UnrealEngine(Buildable):
         """Initialize a new UnrealEngine."""
         if base_dir is None:
             raise UnrealEngineError("UnrealEngine base directory must not be None.")
-        elif base_dir == "":
+        if base_dir == "":
             raise UnrealEngineError("UnrealEngine base directory must not be empty.")
 
         self.base_dir: str = os.path.realpath(base_dir)
@@ -546,7 +546,7 @@ class UnrealEngine(Buildable):
             stdout=subprocess.PIPE,
             stdin=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            shell=False,
+            shell=False,  # nosec
             universal_newlines=True,
         )
 

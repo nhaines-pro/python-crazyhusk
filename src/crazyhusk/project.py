@@ -246,6 +246,11 @@ class UnrealProject(Buildable):
         return os.path.join(self.project_dir, "Saved")
 
     @property
+    def source_dir(self) -> str:
+        """Path to this project's Source directory."""
+        return os.path.join(self.project_dir, "Source")
+
+    @property
     def reports_dir(self) -> str:
         """Get the project's default Reports directory."""
         return os.path.join(self.project_dir, "Saved", "Reports")

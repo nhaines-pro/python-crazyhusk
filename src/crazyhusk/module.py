@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 # Standard Library
+import glob
+import os
 from typing import Any, Dict, List, Optional, Union
 
 __all__ = ["ModuleDescriptor"]
@@ -41,6 +43,10 @@ LOADING_PHASES = frozenset(
         "None",
     }
 )
+
+
+class UnrealModuleError(Exception):
+    """Custom exception representing errors encountered with Unreal Modules."""
 
 
 class ModuleDescriptor(object):
@@ -132,3 +138,17 @@ class ModuleDescriptor(object):
             and self.host_type in HOST_TYPES
             and self.loading_phase in LOADING_PHASES
         )
+
+    def find_definition_file(self, owner: Any) -> Optional[str]:
+        """Find a .Build.cs file for this module relative to an owner object's Source directory, if one exists."""
+        if not hasattr(owner, "source_dir"):
+            raise UnrealModuleError(
+                f"Could not find module definition file. {owner!r} does not define a source_dir attribute."
+            )
+        found = glob.glob(
+            os.path.join(owner.source_dir, "**", f"{self.name}.Build.cs"),
+            recursive=True,
+        )
+        if len(found) == 1:
+            return found[0]
+        return None

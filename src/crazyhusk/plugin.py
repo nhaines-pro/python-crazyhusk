@@ -334,6 +334,11 @@ class UnrealPlugin(Buildable):
         """Directory path of this plugin's Content."""
         return os.path.join(self.plugin_dir, "Content")
 
+    @property
+    def source_dir(self) -> str:
+        """Path to this plugin's Source directory."""
+        return os.path.join(self.plugin_dir, "Source")
+
     # crazyhusk.code.listers
     @staticmethod
     def list_plugin_code_templates(plugin: UnrealPlugin) -> Iterable[CodeTemplate]:

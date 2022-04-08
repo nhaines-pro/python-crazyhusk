@@ -32,7 +32,7 @@ jobs:
       - name: Test with Pytest
         run: coverage run --context=${{ matrix.os }}.${{ matrix.python-version }} -m pytest
       - name: Archive code coverage results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: coverage-data
           path: ".coverage.*"

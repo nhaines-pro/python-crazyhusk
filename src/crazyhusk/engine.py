@@ -26,6 +26,7 @@ from crazyhusk.logs import FilterEngineRun
 
 if TYPE_CHECKING:
     # CrazyHusk
+    from crazyhusk.commandlet.base import UnrealCommandlet
     from crazyhusk.plugin import UnrealPlugin
 
 __all__ = ["UnrealEngine", "UnrealEngineError"]
@@ -566,3 +567,36 @@ class UnrealEngine(Buildable):
                 f"Unreal executable returned exception with return code {return_code}.\nCommand: {cmd}"
             )
         return return_code
+
+    def run_commandlet(
+        self,
+        commandlet: UnrealCommandlet,
+        *extra_switches: str,
+        **extra_parameters: str,
+    ) -> int:
+        """Run a commandlet for this project."""
+        commandlet.validate()
+
+        switches = {
+            "unattended",
+            "nopause",
+            "stdout",
+            "nosplash",
+        } | set(extra_switches)
+
+        if not commandlet.is_valid_for_engine(self):
+            raise UnrealEngineError(
+                f"Commandlet '{commandlet.name}' is not valid for engine: {self!r}"
+            )
+        editor_cmd_path = self.executable_path("UE4Editor-Cmd")
+        if editor_cmd_path is not None:
+            with self:
+                return self.run(
+                    editor_cmd_path,
+                    f"-run={commandlet.name}",
+                    *commandlet.get_commandline_args(),
+                    *UnrealEngine.format_commandline_options(
+                        *switches, **extra_parameters
+                    ),
+                )
+        return -1

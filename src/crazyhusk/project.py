@@ -8,7 +8,11 @@ import glob
 import json
 import os
 from copy import deepcopy
-from typing import Any, Dict, Iterable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
+
+if TYPE_CHECKING:
+    # CrazyHusk
+    from crazyhusk.commandlet.base import UnrealCommandlet
 
 try:
     # Standard Library
@@ -429,6 +433,45 @@ class UnrealProject(Buildable):
                         f'"{self.project_file}"',
                         map_path,
                         *UnrealEngine.format_commandline_options(*switches, **params),
+                    )
+        return -1
+
+    def run_commandlet(
+        self,
+        commandlet: UnrealCommandlet,
+        *extra_switches: str,
+        **extra_parameters: str,
+    ) -> int:
+        """Run a commandlet for this project."""
+        commandlet.validate()
+        if not commandlet.is_valid_for_project(self):
+            raise UnrealProjectError(
+                f"Commandlet '{commandlet.name}' is not valid for project: {self!r}"
+            )
+
+        switches = {
+            "unattended",
+            "nopause",
+            "stdout",
+            "nosplash",
+        } | set(extra_switches)
+
+        if self.engine is not None:
+            if not commandlet.is_valid_for_engine(self.engine):
+                raise UnrealProjectError(
+                    f"Commandlet '{commandlet.name}' is not valid for engine: {self.engine!r}"
+                )
+            editor_cmd_path = self.engine.executable_path("UE4Editor-Cmd")
+            if editor_cmd_path is not None:
+                with self.engine:
+                    return self.engine.run(
+                        editor_cmd_path,
+                        f'"{self.project_file}"',
+                        f"-run={commandlet.name}",
+                        *commandlet.get_commandline_args(),
+                        *UnrealEngine.format_commandline_options(
+                            *switches, **extra_parameters
+                        ),
                     )
         return -1
 

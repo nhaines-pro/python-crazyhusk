@@ -1,17 +1,86 @@
-"""Wrapper objects for ImportAsset commandlet's ImportSettings JSON format."""
+"""Wrapper objects for working with ImportAsset commandlet."""
 
 # Future Standard Library
 from __future__ import annotations
 
 # Standard Library
 import json
+import os
 import string
 from dataclasses import asdict, dataclass, field, is_dataclass
-from typing import ClassVar, List, Optional, Set
+from typing import TYPE_CHECKING, ClassVar, Iterable, List, Optional, Set
+
+# CrazyHusk
+from crazyhusk.commandlet.base import UnrealCommandlet
+
+if TYPE_CHECKING:
+    # CrazyHusk
+    from crazyhusk.engine import UnrealEngine
+    from crazyhusk.project import UnrealProject
 
 
 class UnrealImportError(Exception):
     """Custom exception representing errors encountered with ImportSettings."""
+
+
+@dataclass
+class ImportAssetsCommandlet(UnrealCommandlet):
+    """Commandlet wrapper object for ImportAssets."""
+
+    nosourcecontrol: bool = False
+    skipreadonly: bool = False
+    replaceexisting: bool = False
+    importsettings: Optional[str] = None
+    source: Optional[str] = None
+    dest: Optional[str] = None
+    factoryname: Optional[str] = None
+    level: Optional[str] = None
+
+    @property
+    def name(self) -> str:
+        """Get the commandlet name."""
+        return "ImportAssets"
+
+    def validate(self) -> None:
+        """Raise exceptions if this instance is misconfigured."""
+        if all(x is None for x in [self.source, self.dest, self.importsettings]):
+            raise UnrealImportError(
+                "Invalid Arguments.  Missing, Source (-source), Destination (-dest), or Import settings file (-importsettings) arguments."
+            )
+        if self.importsettings is not None and not os.path.isfile(self.importsettings):
+            raise UnrealImportError(
+                f"ImportSettings argument must point to a file. Could not find: {self.importsettings}"
+            )
+        return None
+
+    def get_commandline_args(self) -> Iterable[str]:
+        """Iterate strings of subprocess arguments to execute the commandlet."""
+        if self.nosourcecontrol:
+            yield "-nosourcecontrol"
+        if self.skipreadonly:
+            yield "-skipreadonly"
+        if self.replaceexisting:
+            yield "-replaceexisting"
+
+        if self.importsettings is not None:
+            yield f"-importsettings={self.importsettings}"
+            raise StopIteration
+        if self.source is not None:
+            yield f"-source={self.source}"
+        if self.dest is not None:
+            yield f"-dest={self.dest}"
+        if self.factoryname is not None:
+            yield f"-factoryname={self.factoryname}"
+        if self.level is not None:
+            yield f"-level={self.level}"
+
+    def is_valid_for_engine(self, engine: UnrealEngine) -> bool:
+        """Get whether this commandlet is available for a given Unreal engine."""
+        return True
+
+    def is_valid_for_project(self, project: UnrealProject) -> bool:
+        """Get whether this commandlet is available for a given Unreal project."""
+        return True
 
 
 @dataclass

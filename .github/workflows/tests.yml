@@ -20,7 +20,7 @@ jobs:
         python-version: ["3.7", "3.9"]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3.1.0
         with:
           fetch-depth: 0
       - name: Set up Python ${{ matrix.python-version }}
@@ -44,7 +44,7 @@ jobs:
     runs-on: windows-latest
     needs: test
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3.1.0
         with:
           fetch-depth: 0
       - name: Set up Python 3.9
